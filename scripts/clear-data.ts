@@ -1,5 +1,5 @@
-// Clears all demo data from the DB while keeping reference data (platforms,
-// categories, tags) and creating one real admin user.
+// Clears all demo data from the DB and seeds reference data (platforms,
+// categories, tags, roles) + one real admin user.
 //
 // Run with: bun run scripts/clear-data.ts
 //
@@ -8,6 +8,7 @@
 
 import bcrypt from 'bcryptjs'
 import { PrismaClient } from '@prisma/client'
+import { platforms as mockPlatforms, categories as mockCategories, tags as mockTags } from '../src/data/mock'
 
 const db = new PrismaClient()
 
@@ -31,7 +32,10 @@ async function main() {
   await db.collectionApp.deleteMany()
   await db.collection.deleteMany()
   await db.app.deleteMany()
-  // Keep: Platform, Category, Tag (reference data needed for app publishing)
+  // Also clear reference data so re-runs are fully idempotent
+  await db.tag.deleteMany()
+  await db.category.deleteMany()
+  await db.platform.deleteMany()
   // Reset users (clear demo users), then create one admin
   await db.user.deleteMany()
   await db.role.deleteMany()
@@ -97,6 +101,36 @@ async function main() {
       }),
     },
   })
+
+  console.log('Creating reference data: platforms, categories, tags...')
+  for (const p of mockPlatforms) {
+    await db.platform.create({
+      data: {
+        slug: p.slug,
+        name: p.name,
+        color: p.color,
+        icon: p.icon,
+        packages: JSON.stringify(p.packages),
+        sortOrder: p.sortOrder,
+      },
+    })
+  }
+  for (const c of mockCategories) {
+    await db.category.create({
+      data: {
+        slug: c.slug,
+        name: c.name,
+        description: c.description,
+        iconUrl: c.icon,
+        sortOrder: c.sortOrder,
+      },
+    })
+  }
+  for (const t of mockTags) {
+    await db.tag.create({
+      data: { slug: t.slug, name: t.name },
+    })
+  }
 
   console.log('Creating one audit log entry to mark the reset...')
   await db.auditLog.create({
