@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils'
 import { useNav, type Route } from '@/lib/store/nav'
 import { platforms } from '@/data/mock'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
+import { AdminUserBadge } from '@/components/auth/admin-user-badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -402,11 +403,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
           <a href="/" className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-background px-4 text-sm font-medium hover:bg-surface-hover">
             <Home className="mr-1.5 h-4 w-4" /> Exit to store
           </a>
-          <Avatar className="h-8 w-8">
-            <AvatarFallback style={{ background: 'linear-gradient(135deg,#1a73e8,#7c3aed)' }} className="text-white">
-              AD
-            </AvatarFallback>
-          </Avatar>
+          <AdminUserBadge />
         </div>
       </header>
       <div className="mx-auto flex w-full max-w-[1440px] flex-1 gap-0">

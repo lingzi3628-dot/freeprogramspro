@@ -34,6 +34,7 @@ import { toast } from 'sonner'
 import { TrustBadge } from '@/components/store/primitives'
 import { SignatureBadge } from '@/components/store/signature-display'
 import { synthesizeSignature } from '@/data/v2-mock'
+import { publishAppAction } from '@/app/actions/auth'
 
 type Step = 'platform' | 'details' | 'media' | 'versions' | 'files' | 'trust' | 'publish'
 
@@ -472,11 +473,43 @@ export function AdminAppEditor({ app, mode }: { app?: App; mode: 'new' | 'edit' 
             <div className="flex justify-between border-t border-border pt-3">
               <Button variant="ghost" onClick={back}>Back</Button>
               <Button
-                onClick={() => {
-                  toast.success(status === 'published' ? 'App published 🎉' : 'Saved as draft', {
-                    description: status === 'published' ? 'Sitemap regenerated. Search index updated.' : undefined,
-                  })
-                  navigate({ name: 'admin-apps' })
+                onClick={async () => {
+                  if (!form.name || !form.slug || !form.tagline || !form.description || !form.category) {
+                    toast.error('Missing required fields', {
+                      description: 'Please fill in: name, slug, tagline, description, and category before publishing.',
+                    })
+                    return
+                  }
+                  const fd = new FormData()
+                  fd.append('name', form.name)
+                  fd.append('slug', form.slug)
+                  fd.append('tagline', form.tagline)
+                  fd.append('description', form.description)
+                  fd.append('category', form.category)
+                  fd.append('license', form.license || 'MIT')
+                  fd.append('sourceUrl', form.sourceUrl || '')
+                  fd.append('homepageUrl', form.homepageUrl || '')
+                  fd.append('developerName', 'Free Programs Pro')
+                  fd.append('status', status)
+                  fd.append('featured', featured ? 'on' : 'off')
+                  fd.append('iconGradientFrom', app?.iconGradient[0] || '#1a73e8')
+                  fd.append('iconGradientTo', app?.iconGradient[1] || '#7c3aed')
+
+                  const tid = toast.loading('Saving to DB…')
+                  try {
+                    const r = await publishAppAction(fd)
+                    if (r.ok) {
+                      toast.success(`Published: ${form.name}`, {
+                        id: tid,
+                        description: `Slug: ${r.slug} · Status: ${status}`,
+                      })
+                      setTimeout(() => navigate({ name: 'admin-apps' }), 600)
+                    } else {
+                      toast.error('Failed to publish', { id: tid, description: r.error })
+                    }
+                  } catch (e: any) {
+                    toast.error('Server error', { id: tid, description: e?.message || String(e) })
+                  }
                 }}
               >
                 <Rocket className="mr-1.5 h-3.5 w-3.5" />
