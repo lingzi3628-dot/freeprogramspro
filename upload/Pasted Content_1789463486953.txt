@@ -1,0 +1,1439 @@
+Free Programs Pro Store
+Complete Product & Technical Documentation
+Version: 1.0
+Status: Master spec
+Owner: Product / Engineering
+Last updated: 2026
+
+Table of Contents
+Executive Summary
+
+Vision & Goals
+
+Non-Goals
+
+Target Users & Personas
+
+Scope & Platforms
+
+Information Architecture
+
+Design System
+
+Layout System
+
+Screen-by-Screen Specifications
+
+Component Library
+
+Feature Specifications — Public
+
+Feature Specifications — Admin
+
+Upload & Publishing Flow
+
+Technical Architecture
+
+Database Schema
+
+API Specification
+
+File Storage & Downloads
+
+Authentication & Authorization
+
+Security
+
+Trust, Safety & Legal Compliance
+
+PWA & Cross-Platform
+
+Performance
+
+Accessibility
+
+SEO
+
+Analytics & Telemetry
+
+Notifications & Email
+
+Monetization (Optional)
+
+Testing Strategy
+
+CI/CD & Deployment
+
+Environments & Config
+
+Roadmap & Phases
+
+Appendices
+
+1. Executive Summary
+Free Programs Pro Store is a multi-platform software marketplace and app store where an administrator and authorized developers publish free programs for Windows, Linux/Ubuntu, Android, and Chrome Extensions. The public site is a browse-and-download storefront with a Play Store-style experience. A private admin panel handles app creation, version management, binary uploads, malware scanning, publication, and analytics.
+
+The product is delivered as:
+
+A web storefront (public)
+
+An admin panel (private)
+
+A Progressive Web App installable on phones, tablets, and desktops
+
+It is not a general-purpose app store for third-party developers. It is a curated, admin-controlled catalog, with optional future support for external uploader accounts under moderation.
+
+2. Vision & Goals
+Vision
+Become the cleanest, most trustworthy place to discover and download free software across desktop, mobile, and browser — with transparent checksums, verified files, and no piracy.
+
+Primary Goals
+Let an admin upload, version, and publish apps across four platforms in under 5 minutes per app.
+
+Give visitors a Play Store-quality browsing experience on phone and desktop.
+
+Establish trust through checksums, scan status, licensing, and source URLs.
+
+Be installable as a PWA on every major platform.
+
+Achieve Lighthouse ≥ 95 (mobile) on public pages.
+
+Success Metrics (first 6 months)
+Metric	Target
+Apps published	100+
+Monthly downloads	50K
+PWA install rate	≥ 3% of returning visitors
+Bounce on app detail	≤ 40%
+Median LCP (mobile)	< 2.0s
+Admin publish time	< 5 min/app
+3. Non-Goals
+Not a paid app store (v1). Donations/Pro membership are optional add-ons.
+
+Not a piracy or warez host. Only apps the operator owns or is licensed to distribute.
+
+Not a developer SDK marketplace in v1.
+
+Not a code signing service.
+
+Not a replacement for GitHub Releases for source distribution.
+
+Not a desktop-native installer framework.
+
+4. Target Users & Personas
+Persona A — Sam, casual visitor (mobile)
+Wants a free PDF tool for Android. Lands from Google. Wants to find it, trust it, download it, in under 60 seconds. Cares about ratings, size, and "is it safe?"
+
+Persona B — Priya, power user (desktop)
+Needs a specific Linux .deb. Cares about architecture (amd64/arm64), distro, dependency notes, checksum, and version history. Will verify SHA-256 before installing.
+
+Persona C — Marco, uploader (future role)
+Has built a Chrome extension. Wants to submit it for review. Needs a submission portal, status updates, and version management.
+
+Persona D — The Admin (primary operator)
+Owns the site. Uploads everything. Needs a fast, reliable dashboard: create app → upload files → set versions → publish. Wants analytics, moderation queues, and audit logs.
+
+Persona E — Moderator
+Handles user reports, review moderation, takedown requests. Needs a queue-first UI.
+
+5. Scope & Platforms
+Supported Platforms (v1)
+Platform	Packages	Notes
+Windows	.exe, .msi, .zip (portable), .msix	x86, x64, ARM64
+Linux / Ubuntu	.deb, .AppImage, .snap, .flatpak, .tar.gz	Debian, Ubuntu, Fedora, Arch
+Android	.apk, .aab	Own apps only
+Chrome Extension	.crx, .zip (unpacked)	MV2/MV3, permissions metadata
+Future Platforms
+macOS (.dmg, .pkg)
+
+Web Apps / PWAs (manifest URL)
+
+CLI tools (npm, pip, cargo references)
+
+Firefox extensions
+
+6. Information Architecture
+Public Sitemap
+text
+/
+├── /apps                    (browse all)
+├── /platforms
+│   ├── /windows
+│   ├── /linux
+│   ├── /ubuntu
+│   ├── /android
+│   └── /chrome-extensions
+├── /categories
+│   └── /categories/[slug]
+├── /app/[slug]              (app detail)
+├── /developer/[slug]
+├── /collections
+│   └── /collections/[slug]
+├── /search
+├── /login
+├── /register
+├── /forgot-password
+├── /account
+│   ├── /downloads
+│   ├── /wishlist
+│   ├── /reviews
+│   └── /settings
+├── /submit                  (developer submission)
+├── /about
+├── /contact
+├── /privacy
+├── /terms
+├── /dmca
+└── /report
+Admin Sitemap
+text
+/admin
+├── /dashboard
+├── /apps
+│   ├── /new
+│   └── /[id]
+│       ├── /edit
+│       ├── /versions
+│       ├── /media
+│       └── /analytics
+├── /versions
+├── /upload
+├── /categories
+├── /tags
+├── /platforms
+├── /collections
+├── /reviews
+├── /reports
+├── /users
+├── /roles
+├── /analytics
+├── /audit-logs
+└── /settings
+    ├── /general
+    ├── /seo
+    ├── /storage
+    ├── /email
+    ├── /security
+    └── /integrations
+7. Design System
+7.1 Design Principles
+Principle	Description
+Content-first	Icon, name, rating, badge do the work. Chrome stays quiet.
+One primary action	Every card/detail has one loud button: Download.
+Scannable	20 apps glanceable in 3 seconds. Consistent card anatomy.
+Progressive disclosure	Summary first, expandable detail.
+Two shapes, one product	Phone and desktop are the same product, different shells.
+Feels native	Installable PWA, safe-area aware, 60fps scroll.
+7.2 Color Tokens
+Light mode
+
+Token	Value	Use
+--bg	#FFFFFF	Page background
+--bg-subtle	#F8F9FA	Section alt background
+--surface	#FFFFFF	Cards
+--surface-hover	#F1F3F4	Card hover
+--border	#E8EAED	Hairlines
+--text	#1F1F1F	Primary text
+--text-2	#5F6368	Secondary
+--text-3	#80868B	Tertiary
+--accent	#1A73E8	Primary action
+--accent-hover	#1765CC	
+--accent-fg	#FFFFFF	Text on accent
+--success	#0B8F6A	Verified / scan clean
+--warning	#F29900	Beta / warning
+--danger	#D93025	Report / flag
+Dark mode
+
+Token	Value
+--bg	#121212
+--bg-subtle	#1C1B1F
+--surface	#1E1E22
+--border	#2E2E33
+--text	#E8EAED
+--text-2	#9AA0A6
+--text-3	#6B7075
+Platform tints (badges only, never page background)
+
+Platform	Hex
+Windows	#0078D4
+Linux	#F6A800
+Ubuntu	#E95420
+Android	#3DDC84
+Chrome	#4285F4
+Rule: one accent per screen. No stacking of hues.
+
+7.3 Typography
+Font: Inter (fallback system-ui), or Geist.
+
+Role	Mobile	Desktop	Weight
+Display / hero	28–32	36–40	600
+H1	24	28	600
+H2 / section header	20	22	600
+H3	16	18	600
+Body	14–15	15	400
+App name (card)	14	14	500
+Meta	12–13	13	400
+Button	14	14	600
+Caption	11–12	12	400
+Line-height: 1.3 headings, 1.5 body. Display letter-spacing: -0.02em.
+
+7.4 Spacing Scale (4px base)
+text
+--s-1:  4px
+--s-2:  8px
+--s-3:  12px
+--s-4:  16px
+--s-5:  20px
+--s-6:  24px
+--s-8:  32px
+--s-10: 40px
+--s-12: 48px
+--s-16: 64px
+--s-20: 80px
+7.5 Radius
+text
+--r-sm:  8px    (buttons secondary, inputs)
+--r-md:  12px   (cards, images)
+--r-lg:  16px   (large cards, hero)
+--r-xl:  28px   (bottom sheet top corners)
+--r-full: 999px (pills, chips, primary buttons)
+Icon squircle: 22% of icon size
+7.6 Elevation
+Minimal. Prefer hairline borders over shadows.
+
+text
+elev-0: none (default)
+elev-1: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06)  (cards on hover)
+elev-2: 0 4px 12px rgba(0,0,0,0.10)  (dropdowns, popovers)
+elev-3: 0 12px 32px rgba(0,0,0,0.16)  (modals, sheets)
+7.7 Motion
+Token	Duration	Use
+--dur-fast	150ms	Hover, focus, tap
+--dur	200ms	Buttons, chips
+--dur-slow	300ms	Sheets, page transitions
+--ease	cubic-bezier(0.2, 0, 0, 1)	Standard
+--ease-out	cubic-bezier(0, 0, 0.2, 1)	Enter
+--ease-in	cubic-bezier(0.4, 0, 1, 1)	Exit
+Signature transitions:
+
+App icon: shared-element from card → detail (View Transitions API)
+
+Bottom sheet: slide up 250ms ease-out
+
+Card hover (desktop): translateY(-2px) + icon scale(1.02)
+
+Download button: Download → progress ring → Installed ✓
+
+Respect prefers-reduced-motion: reduce to opacity-only fades.
+
+7.8 Iconography
+Set: Lucide or Material Symbols — one, not both
+
+Stroke: 1.5–2px
+
+Sizes: 16, 20, 24, 32
+
+Platform logos: official marks from vendor brand kits only
+
+7.9 Illustration
+Empty states: 1-color line illustration, accent-tinted
+
+Error states: same style, danger-tinted
+
+Hero backgrounds: subtle gradient mesh or solid tint, never stock photos of people at laptops
+
+7.10 Brand Identity
+Wordmark: "Free Programs Pro Store" — use "Free Programs Pro" on tight space
+
+Monogram: FP in a squircle for favicon/PWA
+
+Voice: friendly-expert. "Curated", "verified", "checked", "open". Avoid marketing fluff.
+
+8. Layout System
+Breakpoints
+Name	Width	Shell
+Compact	< 600	Bottom tab bar, single column
+Medium	600–1023	Bottom bar or nav rail, 2-col grids
+Expanded	1024–1439	Left sidebar, 3–4 col grids
+Large	≥ 1440	Left sidebar, 5 col grids
+Content max-width: 1440px centered.
+
+Grid
+Mobile: 4-col grid, 16px gutters, 16px margins
+
+Desktop: 12-col grid, 24px gutters, 24–40px margins
+
+Mobile Shell
+text
+Sticky top bar (56px):
+  [avatar]  [search pill]  [bell]
+
+Sticky chips row (48px):
+  All · Windows · Linux · Ubuntu · Android · Extensions
+
+Scrollable content
+
+Fixed bottom nav (64px + safe area):
+  Home · Apps · Search · Library · Me
+Rules:
+
+Bottom nav respects env(safe-area-inset-bottom)
+
+Search pill expands to full-screen search on tap
+
+Carousels: scroll-snap-type: x mandatory, hidden scrollbar, 16px edge padding
+
+Detail pages are route transitions, not modals
+
+Filters open in bottom sheet with sticky "Show N results"
+
+Download button sticky above bottom nav on detail pages
+
+Desktop Shell
+text
+Top app bar (64px):
+  Logo   [search input..........................]   [bell]  [avatar]
+
+Left sidebar (240px, collapsible to 72px):
+  Home / Apps / Games / Library
+  PLATFORMS
+    Windows / Linux / Ubuntu / Android / Extensions
+  CATEGORIES
+    Dev Tools / Security / Utilities / ...
+  [Get Pro]
+
+Content area: responsive grid, max 1440px
+Rules:
+
+Horizontal carousels become grids on desktop
+
+Grid columns: 5 at ≥1440, 4 at 1200, 3 at 1024
+
+Detail pages become two-column: sticky meta rail + scrollable body
+
+/ focuses search, Esc closes overlays, arrow keys move across grids
+
+9. Screen-by-Screen Specifications
+9.1 Home
+Sections, in order:
+
+Hero carousel — up to 5 featured apps, 16:9 on mobile, 21:9 on desktop
+
+Platform chips (sticky)
+
+"Top free apps" — horizontal cards (mobile), grid (desktop)
+
+"New releases" — list rows
+
+"Editor's picks" — curated collection
+
+"Browse by platform" — 2×2 tiles (mobile), 5-up (desktop)
+
+"Top rated" — grid
+
+"Recently updated" — list
+
+Footer
+
+Each section header: title (H2) + "See all →".
+
+9.2 Browse / Category / Platform
+Sticky filter bar: chips (platform, category, license, rating, OS, arch)
+
+Sort: Relevance · Newest · Top rated · Most downloaded · A–Z
+
+Result count "1,204 apps"
+
+Grid of app cards
+
+Infinite scroll with a real paginated fallback URL (?page=2) for SEO
+
+Empty state: illustration + "No apps match. Try clearing filters." + [Clear filters]
+
+9.3 Search
+Mobile: full-screen overlay
+
+Search input autofocused
+
+Recent searches (clearable)
+
+Suggestions as you type (apps, categories, developers)
+
+Results: list rows
+
+Desktop: inline dropdown with grouped results, Enter → /search?q=
+
+9.4 App Detail (Public)
+Mobile order:
+
+Icon (72) + name + developer + platform badges
+
+Stats row: ★ 4.8 · 50K downloads · 12 MB · Everyone
+
+Download button (full-width, sticky at bottom)
+
+Screenshot carousel (snap-scroll, tap → lightbox)
+
+"About this app" — 3-line clamp + "Read more"
+
+"What's new" — latest version + changelog accordion
+
+Trust block: license, source URL, SHA-256, scan status, permissions
+
+Ratings & reviews: histogram + 3 reviews + "See all reviews"
+
+"More from [developer]"
+
+"Similar apps"
+
+Desktop: items 1–3 in sticky left column (320px); 4–10 scroll in right column.
+
+9.5 Version History
+Table: version · date · platform · channel · size · checksum · download
+
+Changelog per version (markdown)
+
+"Stable / Beta / Nightly" filter
+
+9.6 Reviews
+Star histogram (5★ → 1★)
+
+Sort: Most helpful · Newest · Highest · Lowest
+
+Each review: avatar, name, star rating, date, body, "Helpful" count, "Report"
+
+Logged-in users can post one review per app; editable
+
+9.7 Account
+Profile: avatar, name, email, password, 2FA
+
+Downloads: history with re-download links
+
+Wishlist: saved apps
+
+Reviews: my reviews with edit/delete
+
+Settings: theme (system/light/dark), notifications, delete account
+
+9.8 Admin Dashboard
+KPI cards: apps, downloads (7d), users, pending reports
+
+Charts: downloads over time (line), top apps (bar), platform split (donut)
+
+Queues: pending reviews, open reports, draft apps
+
+Recent audit log entries
+
+9.9 Admin App Editor
+Wizard tabs: Details → Media → Platforms & Versions → Files → Trust → Publish
+
+Details: name, slug, tagline, description (rich text), category, tags, developer, license, source URL, homepage
+
+Media: icon (512×512 PNG), feature graphic (1024×500), screenshots (min 2, up to 10)
+
+Platforms & Versions: per-platform version entries with min OS, arch, channel, changelog
+
+Files: drag-and-drop, per-file progress, auto SHA-256, optional VirusTotal scan
+
+Trust: license type, permissions list, safety notes
+
+Publish: draft / scheduled / public toggle, "Preview as public" link
+
+9.10 Admin Review Queue
+Table: app, user, rating, excerpt, date, actions (approve, hide, delete)
+
+Bulk actions
+
+9.11 Admin Reports Queue
+Table: type (app, review, user), reporter, reason, status, date
+
+Detail drawer: full context + resolve/dismiss + notes
+
+10. Component Library
+Core components
+Component	Variants	Notes
+AppCard	card, list-row, hero, compact	The atom of the store
+PlatformBadge	windows, linux, ubuntu, android, chrome	Pill with logo + label
+Rating	stars, stars+count, histogram	Never stars alone
+DownloadButton	default, downloading, installed, error	Mirrors Play language
+ScreenshotStrip	mobile, desktop	Snap-scroll, lightbox
+Chip	filter, selectable, removable	Pill
+SectionHeader	with/without See all	H2 + link
+SearchInput	pill, expanded, overlay	
+Tabs	underline, pill	
+BottomSheet	default, full-height	28px top radius
+Modal	sm, md, lg	Focus trap
+Toast	success, error, info	Bottom on mobile
+EmptyState	illustration + text + action	
+Skeleton	card, row, detail	
+Pagination	numbers, infinite-scroll fallback	
+ThemeToggle	icon	system/light/dark
+Prose	markdown renderer	Changelogs, policies
+Admin-only components
+Component	Notes
+DataTable	Sortable, filterable, 36–40px rows
+FileDropzone	Drag-drop + progress + checksum chip
+VersionRow	Inline edit
+StatCard	KPI with trend
+LineChart, BarChart, DonutChart	Recharts or visx
+CommandPalette	Cmd+K jump to any entity
+AuditLogRow	Actor, action, entity, time
+RoleSelector	RBAC
+11. Feature Specifications — Public
+11.1 Browse & Filter
+Filters: platform, category, tag, license, rating ≥, file size, OS, architecture, updated within
+
+Filter state in URL query (?platform=windows&sort=rating)
+
+Multi-select on desktop, single-select chips on mobile
+
+11.2 Search
+Backend: Meilisearch/Typesense
+
+Fields indexed: name, tagline, description, developer, tags, platform
+
+Features: typo tolerance, synonyms, boosts (name > tags > description), highlighted snippets
+
+Recent searches stored locally; suggestions from server
+
+11.3 App Detail
+Server-rendered for SEO
+
+Structured data (see §24)
+
+Related apps: same category/tags, same platform, top-rated
+
+"Report this app" link → form
+
+11.4 Download
+Click → POST /api/downloads/[versionId]
+
+Server logs download (user agent, referrer, country, hashed IP)
+
+Redirects to signed URL (expires in 60s, single use)
+
+Shows checksum + size before download on mobile browsers that support it
+
+11.5 Reviews
+Auth required
+
+One review per app per user
+
+1–5 stars + optional body (max 2000 chars)
+
+Rate limit: 5 reviews/day/user
+
+Profanity filter + manual moderation
+
+11.6 Wishlist
+Auth required
+
+Add/remove from card or detail
+
+Visible in /account/wishlist
+
+11.7 Report
+Types: malware, broken download, wrong metadata, copyright, other
+
+Requires description
+
+Rate limited
+
+Feeds admin queue
+
+11.8 Developer Profiles
+Name, avatar, bio, links
+
+List of their apps
+
+Follow (future)
+
+11.9 Collections
+Admin-curated, ordered lists ("Best dev tools 2026")
+
+Public /collections/[slug]
+
+12. Feature Specifications — Admin
+12.1 App CRUD
+Create, edit, duplicate, archive, delete (soft)
+
+Slug auto-generated, editable, unique
+
+Draft / Scheduled / Published states
+
+Feature toggle, pin to home
+
+12.2 Version Management
+Multiple versions per app per platform
+
+Channels: stable, beta, nightly, rc
+
+Fields: version, channel, platform, min OS, arch, size, checksum, changelog, published_at
+
+"Mark latest" per platform
+
+Rollback (set previous as latest)
+
+12.3 File Uploads
+Drag-drop, multi-file
+
+Max size configurable (default 500MB)
+
+Auto checksum (SHA-256)
+
+Optional VirusTotal scan → status chip
+
+Versioned storage keys: apps/{slug}/{version}/{platform}/{filename}
+
+12.4 Media Management
+Icon (required, 512×512 PNG)
+
+Feature graphic (1024×500)
+
+Screenshots (2–10, PNG/JPG/WebP)
+
+Auto-generate thumbnails + AVIF/WebP
+
+12.5 Categories, Tags, Platforms
+Full CRUD, drag-to-reorder
+
+Category: name, slug, icon, description, parent (optional)
+
+Tag: name, slug
+
+Platform: name, slug, color, icon
+
+12.6 Collections
+Curate apps, drag order, publish
+
+12.7 Reviews & Reports
+Queue views, bulk action, notes
+
+Reasons, resolution history
+
+12.8 Users & Roles
+Search, filter, ban/unban
+
+Role assignment
+
+Impersonation (super admin only, audit logged)
+
+12.9 Audit Logs
+Every admin write action logged
+
+Fields: actor, action, entity_type, entity_id, before, after, ip, user_agent, timestamp
+
+Read-only, exportable
+
+12.10 Analytics
+Downloads (day/week/month)
+
+Top apps / platforms / countries
+
+Funnel: view → detail → download
+
+Retention (returning users)
+
+Referrers
+
+12.11 Settings
+General: name, logo, tagline, contact
+
+SEO: default meta, sitemap toggle, OG image
+
+Storage: S3 endpoint, bucket, region, keys
+
+Email: provider, from address, templates
+
+Security: 2FA required for admins, session length, IP allowlist
+
+Integrations: VirusTotal, Stripe, Resend, Sentry
+
+13. Upload & Publishing Flow
+Single-app flow:
+
+Create app → name, slug, tagline, category
+
+Upload media → icon, feature graphic, screenshots
+
+Add platform entry → pick platform
+
+Add version → number, channel, min OS, arch, changelog
+
+Upload binary → progress → SHA-256 computed → optional scan
+
+Set trust metadata → license, source URL, permissions
+
+Preview → open public URL in preview mode
+
+Publish → confirmation lists exactly what goes live
+
+Post-publish → app appears in browse, sitemap updates, search index updated
+
+Bulk upload (v1.1): CSV + ZIP bundle.
+
+Scheduled publish: choose date/time; cron job flips status.
+
+14. Technical Architecture
+Stack
+Layer	Choice	Alternative
+Frontend	Next.js 15 App Router + TypeScript	Remix, SvelteKit
+Styling	Tailwind CSS + shadcn/ui	CSS Modules
+State	Server components + TanStack Query for client	Zustand
+Database	PostgreSQL 16	MySQL, Supabase
+ORM	Prisma	Drizzle
+Auth	Auth.js v5	Clerk, Supabase Auth
+Storage	Cloudflare R2 (S3-compatible)	AWS S3, Backblaze B2
+CDN	Cloudflare	CloudFront, Fastly
+Search	Meilisearch	Typesense, PG FTS
+Cache/Queue	Redis (Upstash) + BullMQ	QStash
+Email	Resend	Postmark, SES
+Payments	Stripe (optional)	Paddle
+Error monitoring	Sentry	Axiom
+Analytics	Plausible or Umami (self-host)	GA4
+Deployment	Vercel	Fly.io, Railway, Docker VPS
+High-Level Diagram
+text
+Browser / PWA
+    │
+    ▼
+Cloudflare (CDN, WAF, DDoS)
+    │
+    ▼
+Next.js (Vercel / Node)
+ ├─ App Router (RSC + client islands)
+ ├─ API routes / Server Actions
+ ├─ Auth.js sessions
+ └─ Rate limiting (Redis)
+    │
+    ├──▶ PostgreSQL (Prisma)
+    ├──▶ Redis (cache + queue)
+    ├──▶ Meilisearch (index)
+    ├──▶ R2/S3 (files + images)
+    ├──▶ Resend (email)
+    └──▶ VirusTotal / Sentry / Stripe
+Rendering Strategy
+Page	Strategy
+Home, browse, category, platform	ISR (revalidate 60s)
+App detail	ISR + on-demand revalidate on publish
+Search	SSR / client
+Account, admin	Dynamic, no cache
+Static policies	SSG
+15. Database Schema
+Tables
+users
+id, email, name, avatar_url, password_hash, role_id, email_verified_at, two_factor_secret, banned_at, created_at, updated_at, deleted_at
+
+roles
+id, name (guest/user/uploader/moderator/admin/super_admin), permissions (jsonb)
+
+apps
+id, slug, name, tagline, description, icon_url, feature_graphic_url, developer_id, category_id, license, source_url, homepage_url, status (draft/scheduled/published/archived), featured (bool), published_at, created_at, updated_at, deleted_at
+
+app_versions
+id, app_id, platform_id, version, channel (stable/beta/nightly/rc), release_notes, file_url, file_size, checksum_sha256, min_os, architecture, permissions (jsonb), scan_status, scan_report_url, published_at, created_at
+
+platforms
+id, slug, name, color, icon_url, sort_order
+
+categories
+id, slug, name, description, icon_url, parent_id, sort_order
+
+tags
+id, slug, name
+
+app_tags
+app_id, tag_id (composite PK)
+
+screenshots
+id, app_id, url, width, height, sort_order
+
+files
+id, app_version_id, storage_key, url, size, mime, checksum_sha256, created_at
+
+downloads
+id, app_id, app_version_id, user_id (nullable), ip_hash, user_agent, referrer, country, created_at
+
+reviews
+id, app_id, user_id, rating (1–5), body, helpful_count, status (visible/hidden/pending), created_at, updated_at
+
+reports
+id, type (app/review/user), target_id, reporter_id, reason, description, status (open/resolved/dismissed), resolver_id, resolution_note, created_at, resolved_at
+
+collections
+id, slug, name, description, cover_url, published (bool), sort_order
+
+collection_apps
+collection_id, app_id, sort_order
+
+audit_logs
+id, actor_id, action, entity_type, entity_id, before (jsonb), after (jsonb), ip, user_agent, created_at
+
+settings
+key, value (jsonb), updated_at
+
+subscriptions (optional)
+id, user_id, plan, status, stripe_customer_id, stripe_subscription_id, current_period_end
+
+notifications
+id, user_id, type, title, body, link, read_at, created_at
+
+Indexes
+apps(slug) unique
+
+apps(status, published_at)
+
+app_versions(app_id, platform_id, channel)
+
+downloads(app_id, created_at)
+
+reviews(app_id, status)
+
+reports(status, created_at)
+
+Full-text index on apps(name, tagline, description)
+
+Soft deletes
+All content tables have deleted_at. Public queries filter deleted_at IS NULL.
+
+16. API Specification
+Public
+Method	Path	Notes
+GET	/api/apps	Paginated, filterable, sortable
+GET	/api/apps/[slug]	Detail
+GET	/api/apps/[slug]/versions	Version list
+GET	/api/apps/[slug]/reviews	Paginated
+POST	/api/apps/[slug]/reviews	Auth
+POST	/api/downloads/[versionId]	Returns signed URL
+GET	/api/categories	
+GET	/api/platforms	
+GET	/api/tags	
+GET	/api/collections/[slug]	
+GET	/api/search?q=	Meilisearch proxy
+POST	/api/reports	Auth optional
+Auth
+Method	Path
+POST	/api/auth/register
+POST	/api/auth/login
+POST	/api/auth/logout
+POST	/api/auth/forgot-password
+POST	/api/auth/reset-password
+Admin (RBAC)
+Method	Path	Role
+POST	/api/admin/apps	admin
+PUT	/api/admin/apps/[id]	admin
+DELETE	/api/admin/apps/[id]	admin
+POST	/api/admin/apps/[id]/versions	admin
+POST	/api/admin/upload	admin (signed URL issue)
+POST	/api/admin/scan/[fileId]	admin
+PUT	/api/admin/reviews/[id]	moderator
+PUT	/api/admin/reports/[id]	moderator
+PUT	/api/admin/users/[id]/role	super_admin
+GET	/api/admin/analytics?range=	admin
+GET	/api/admin/audit-logs	super_admin
+Conventions
+JSON: { data, meta? } on success, { error: { code, message } } on failure
+
+Zod validation on every input
+
+Rate limiting via Redis
+
+Cursor pagination for large lists
+
+17. File Storage & Downloads
+Storage layout
+text
+/apps/{slug}/icon.png
+/apps/{slug}/feature.png
+/apps/{slug}/screenshots/{n}.webp
+/apps/{slug}/{version}/{platform}/{filename}
+/uploads/tmp/{uuid}
+Uploads
+Direct-to-S3 via presigned URLs (client → R2), max 500MB per file
+
+Checksum computed client-side (Web Crypto) and verified server-side
+
+MIME + magic-byte validation
+
+Optional VirusTotal scan (async job)
+
+Thumbnail generation for images (Sharp), stored as WebP + AVIF
+
+Downloads
+API issues a presigned GET URL (60s expiry, single-use)
+
+CDN in front of bucket (Cloudflare) for hot files
+
+Log download event before redirect
+
+Optional "verified download" landing page on mobile
+
+18. Authentication & Authorization
+Auth
+Auth.js v5 with credentials + optional OAuth (Google, GitHub)
+
+Password hashing: Argon2id
+
+Email verification required for reviews/uploads
+
+Optional 2FA (TOTP) — required for admins
+
+Session: JWT in httpOnly, secure, SameSite=Lax
+
+RBAC
+Role	Permissions
+Guest	Browse, search, download
+User	+ reviews, wishlist, report
+Uploader	+ submit apps (their own)
+Moderator	+ review/report queues
+Admin	+ full app CRUD, users, categories
+Super Admin	+ roles, settings, audit logs, impersonation
+Enforced via middleware + server-side checks on every admin route.
+
+19. Security
+Area	Measure
+Input	Zod validation, parameterized queries (Prisma)
+Output	Sanitize rich text (DOMPurify server-side)
+CSRF	Double-submit token + SameSite cookies
+XSS	CSP with nonces, no dangerouslySetInnerHTML on user content
+Rate limit	Redis sliding window per IP + per user
+Uploads	MIME + magic-byte check, size caps, AV scan
+Storage	Private buckets, signed URLs only
+Secrets	Env vars, never committed; rotated quarterly
+Admin	2FA required, IP allowlist optional, session 8h max
+Headers	HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+Dependencies	Dependabot, npm audit in CI
+Backups	Nightly DB snapshots, 30-day retention, restore-tested monthly
+Monitoring	Sentry, uptime alerts, log retention 90d
+20. Trust, Safety & Legal Compliance
+Content policy
+Only apps the operator owns or is licensed to distribute
+
+No pirated software, cracks, keygens, or repacks
+
+No malware, spyware, adware, or PUPs
+
+Clear license shown (Freeware, Open Source [SPDX], Trial, etc.)
+
+Trust signals on every app
+SHA-256 checksum
+
+Scan status (clean / pending / flagged) — with provider name
+
+License type
+
+Source URL (official homepage/GitHub)
+
+Last updated date
+
+Reported issues count (publicly visible)
+
+Legal pages
+Privacy Policy
+
+Terms of Service
+
+Cookie Notice + consent banner (EU/UK)
+
+DMCA / Takedown
+
+Report Abuse
+
+Security.txt (/.well-known/security.txt)
+
+DMCA workflow
+Complaint submitted via /dmca form
+
+Auto-ack email to complainant
+
+Admin notified; 24–72h SLA
+
+Takedown or counter-notice
+
+Audit logged
+
+GDPR / CCPA
+Cookie consent by region
+
+Data export (JSON) and deletion from account settings
+
+DPA with processors documented
+
+21. PWA & Cross-Platform
+Manifest
+json
+{
+  "name": "Free Programs Pro Store",
+  "short_name": "Free Programs Pro",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1A73E8",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": { "title": "title", "text": "text", "url": "url" }
+  }
+}
+Service worker
+Precache app shell + offline page
+
+Cache-first for static assets, network-first for API
+
+Cache last-viewed app detail pages
+
+Background sync for reviews/reports composed offline
+
+Push notifications for "new version of an app you downloaded"
+
+Install experience
+Custom install banner after 2nd visit (not first)
+
+display-mode: standalone tweaks: hide install banner, add safe-area padding
+
+Android TWA wrapper optional for Play Store listing
+
+Platform-specific notes
+iOS: install via Add to Home Screen; support apple-touch-icon, apple-mobile-web-app-capable
+
+Windows/macOS/Linux: Chrome/Edge install → appears in launcher
+
+Android: TWA or install prompt
+
+22. Performance
+Metric	Target
+LCP (mobile 4G)	< 2.0s
+CLS	< 0.05
+INP	< 200ms
+TTFB	< 400ms
+Lighthouse mobile	≥ 95
+Bundle (initial JS, gzip)	< 150KB
+Images	AVIF/WebP, lazy, responsive srcset, sizes
+Techniques:
+
+RSC + streaming SSR
+
+Route-level code splitting
+
+Font subsetting + font-display: swap
+
+Preconnect to storage/CDN hosts
+
+Prefetch on hover/viewport for likely next routes
+
+CDN caching for images and static
+
+Edge rendering for home/browse
+
+23. Accessibility
+WCAG 2.2 AA minimum
+
+Contrast ≥ 4.5:1 text, 3:1 UI
+
+All targets ≥ 44×44px mobile
+
+Visible focus rings, logical tab order
+
+Semantic landmarks (header, nav, main, aside, footer)
+
+Labels on all icon-only buttons
+
+Alt text required for screenshots in admin
+
+Respect prefers-reduced-motion, prefers-color-scheme, prefers-contrast
+
+Screen reader test pass on VoiceOver + NVDA
+
+RTL-ready via logical CSS properties
+
+Test at 320px width and 200% zoom
+
+24. SEO
+Server-rendered pages with unique titles, descriptions, canonical URLs
+
+Sitemap.xml (apps, categories, platforms, collections, static pages)
+
+robots.txt with sitemap reference
+
+Structured data:
+
+SoftwareApplication on app detail
+
+AggregateRating + Review
+
+BreadcrumbList
+
+Organization + WebSite with SearchAction
+
+Open Graph + Twitter cards; per-app OG image (dynamic via @vercel/og)
+
+Clean slugs, no query-string-only content
+
+hreflang if localized
+
+301 redirects on slug change (audit log stores old slugs)
+
+25. Analytics & Telemetry
+Product analytics
+Pageviews, unique visitors, sessions
+
+Funnel: home → browse → detail → download
+
+Search queries (with zero-result queries surfaced to admin)
+
+Referrers, countries, devices
+
+Privacy
+No PII in analytics
+
+IP hashed before storage
+
+Cookie consent gates analytics in EU/UK
+
+Error/performance monitoring
+Sentry for exceptions (source maps uploaded)
+
+Web Vitals reported to /api/vitals
+
+Uptime checks (1 min interval)
+
+26. Notifications & Email
+Transactional emails
+Welcome / verify email
+
+Password reset
+
+Review posted (to admin, optional)
+
+Report received (ack)
+
+DMCA received (ack)
+
+New version of subscribed app (opt-in)
+
+Pro membership receipt (if enabled)
+
+In-app notifications
+Bell in header with unread count
+
+Categories: new version, review reply, moderation action
+
+Push (PWA)
+Opt-in per app ("Notify me about updates")
+
+Sent via Web Push (VAPID)
+
+27. Monetization (Optional)
+Stream	Notes
+Donations	Stripe / Ko-fi / GitHub Sponsors
+Pro membership	No ads, bulk download, API access, priority support
+Sponsored placement	Clearly labeled "Sponsored"
+Affiliate	For hosted/partner products
+Featured slots	Curated, not paid (v1)
+Ads (if enabled): never inline between cards; sidebar or below fold only, labeled.
+
+28. Testing Strategy
+Layer	Tool	Coverage
+Unit	Vitest	Utils, hooks, validators
+Component	Testing Library	Card, button, form
+Integration	Vitest + MSW	API routes
+E2E	Playwright	Critical flows: browse → detail → download; admin upload → publish
+Accessibility	axe-core (CI)	All key pages
+Visual	Playwright screenshots	Home, detail, admin
+Load	k6	Download endpoint under load
+Security	npm audit, Snyk, OWASP ZAP baseline	
+CI blocks merge on failing tests + a11y violations.
+
+29. CI/CD & Deployment
+Pipeline
+Lint (ESLint, Prettier, TypeScript)
+
+Type check (tsc --noEmit)
+
+Unit + integration tests
+
+Build
+
+Playwright E2E against preview deploy
+
+Lighthouse CI budget check
+
+Deploy (preview → production on main)
+
+Deployment targets
+Vercel (recommended for Next.js)
+
+Fly.io / Railway for a containerized Node
+
+Docker + VPS (Caddy + Postgres + Redis + Meilisearch)
+
+Infra requirements
+Postgres 16 (managed)
+
+Redis (managed or self-hosted)
+
+S3-compatible bucket
+
+Meilisearch instance
+
+CDN in front of storage
+
+Cron runner for scheduled publish + backups
+
+Backups
+DB: nightly snapshot + WAL archiving
+
+Storage: versioning + lifecycle rules
+
+Restore drill monthly
+
+30. Environments & Config
+Environments
+local, preview, staging, production
+
+Env vars (.env.example)
+text
+DATABASE_URL=
+REDIS_URL=
+AUTH_SECRET=
+AUTH_URL=
+S3_ENDPOINT=
+S3_REGION=
+S3_BUCKET=
+S3_ACCESS_KEY=
+S3_SECRET_KEY=
+S3_PUBLIC_URL=
+MEILISEARCH_HOST=
+MEILISEARCH_KEY=
+RESEND_API_KEY=
+MAIL_FROM=
+VIRUSTOTAL_API_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+SENTRY_DSN=
+NEXT_PUBLIC_SITE_URL=
+NEXT_PUBLIC_SITE_NAME=
+Secrets rotated quarterly. Access limited via role-based cloud IAM.
+
+31. Roadmap & Phases
+Phase 1 — Foundation (Weeks 1–3)
+Repo, CI, environments
+
+Design tokens, layout shell (mobile bottom nav + desktop sidebar)
+
+Auth, RBAC, DB schema + migrations
+
+S3 storage integration
+
+Phase 2 — Admin MVP (Weeks 4–6)
+App CRUD
+
+Version management
+
+Upload flow with checksum + scan
+
+Publish/unpublish
+
+Admin dashboard shell
+
+Phase 3 — Public Store MVP (Weeks 7–9)
+Home, browse, category, platform
+
+App detail + download flow
+
+Search (Meilisearch)
+
+SEO + sitemap
+
+Reviews + reports
+
+Phase 4 — Polish (Weeks 10–12)
+PWA manifest + service worker
+
+Notifications, email templates
+
+Analytics dashboards
+
+Audit logs
+
+A11y + performance passes
+
+Playwright E2E
+
+Phase 5 — Extensions (Post-launch)
+Developer/uploader role + submission portal
+
+Collections
+
+Chrome extension metadata form
+
+macOS platform support
+
+Pro membership + Stripe
+
+Bulk upload
+
+Public API for partners
+
+32. Appendices
+A. Design token CSS (drop-in)
+css
+:root {
+  --bg: #ffffff; --bg-subtle: #f8f9fa; --surface: #ffffff;
+  --border: #e8eaed;
+  --text: #1f1f1f; --text-2: #5f6368; --text-3: #80868b;
+  --accent: #1a73e8; --accent-hover: #1765cc; --accent-fg: #fff;
+  --success: #0b8f6a; --warning: #f29900; --danger: #d93025;
+  --win: #0078d4; --linux: #f6a800; --ubuntu: #e95420;
+  --android: #3ddc84; --chrome: #4285f4;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 28px; --r-full: 999px;
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px;
+  --font: 'Inter', system-ui, sans-serif;
+  --dur-fast: 150ms; --dur: 200ms; --dur-slow: 300ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121212; --bg-subtle: #1c1b1f; --surface: #1e1e22;
+    --border: #2e2e33;
+    --text: #e8eaed; --text-2: #9aa0a6; --text-3: #6b7075;
+  }
+}
+B. Acceptance Criteria
+Admin can publish a Windows, Linux, Android, and Chrome extension app with versions, media, and checksums
+
+Public can browse, filter, search, view, review, report, and download
+
+Downloads use signed URLs and display checksums
+
+PWA installs on Android, iOS, Windows, macOS, Linux
+
+Lighthouse mobile ≥ 95 on home, detail, browse
+
+All admin write actions audit-logged
+
+Only authorized software can be published (manual gate)
+
+Site works at 320px width, in dark mode, and via keyboard only
+
+C. Glossary
+Channel — stable/beta/nightly release track
+
+Checksum — SHA-256 hash of a binary
+
+CRX — Chrome extension package
+
+PWA — Progressive Web App
+
+RBAC — Role-Based Access Control
+
+Signed URL — Time-limited URL to a private file
+
+Slug — URL-friendly identifier
+
+TWA — Trusted Web Activity (Android wrapper

@@ -1,0 +1,1439 @@
+     1→     1→Free Programs Pro Store
+     2→     2→Complete Product & Technical Documentation
+     3→     3→Version: 1.0
+     4→     4→Status: Master spec
+     5→     5→Owner: Product / Engineering
+     6→     6→Last updated: 2026
+     7→     7→
+     8→     8→Table of Contents
+     9→     9→Executive Summary
+    10→    10→
+    11→    11→Vision & Goals
+    12→    12→
+    13→    13→Non-Goals
+    14→    14→
+    15→    15→Target Users & Personas
+    16→    16→
+    17→    17→Scope & Platforms
+    18→    18→
+    19→    19→Information Architecture
+    20→    20→
+    21→    21→Design System
+    22→    22→
+    23→    23→Layout System
+    24→    24→
+    25→    25→Screen-by-Screen Specifications
+    26→    26→
+    27→    27→Component Library
+    28→    28→
+    29→    29→Feature Specifications — Public
+    30→    30→
+    31→    31→Feature Specifications — Admin
+    32→    32→
+    33→    33→Upload & Publishing Flow
+    34→    34→
+    35→    35→Technical Architecture
+    36→    36→
+    37→    37→Database Schema
+    38→    38→
+    39→    39→API Specification
+    40→    40→
+    41→    41→File Storage & Downloads
+    42→    42→
+    43→    43→Authentication & Authorization
+    44→    44→
+    45→    45→Security
+    46→    46→
+    47→    47→Trust, Safety & Legal Compliance
+    48→    48→
+    49→    49→PWA & Cross-Platform
+    50→    50→
+    51→    51→Performance
+    52→    52→
+    53→    53→Accessibility
+    54→    54→
+    55→    55→SEO
+    56→    56→
+    57→    57→Analytics & Telemetry
+    58→    58→
+    59→    59→Notifications & Email
+    60→    60→
+    61→    61→Monetization (Optional)
+    62→    62→
+    63→    63→Testing Strategy
+    64→    64→
+    65→    65→CI/CD & Deployment
+    66→    66→
+    67→    67→Environments & Config
+    68→    68→
+    69→    69→Roadmap & Phases
+    70→    70→
+    71→    71→Appendices
+    72→    72→
+    73→    73→1. Executive Summary
+    74→    74→Free Programs Pro Store is a multi-platform software marketplace and app store where an administrator and authorized developers publish free programs for Windows, Linux/Ubuntu, Android, and Chrome Extensions. The public site is a browse-and-download storefront with a Play Store-style experience. A private admin panel handles app creation, version management, binary uploads, malware scanning, publication, and analytics.
+    75→    75→
+    76→    76→The product is delivered as:
+    77→    77→
+    78→    78→A web storefront (public)
+    79→    79→
+    80→    80→An admin panel (private)
+    81→    81→
+    82→    82→A Progressive Web App installable on phones, tablets, and desktops
+    83→    83→
+    84→    84→It is not a general-purpose app store for third-party developers. It is a curated, admin-controlled catalog, with optional future support for external uploader accounts under moderation.
+    85→    85→
+    86→    86→2. Vision & Goals
+    87→    87→Vision
+    88→    88→Become the cleanest, most trustworthy place to discover and download free software across desktop, mobile, and browser — with transparent checksums, verified files, and no piracy.
+    89→    89→
+    90→    90→Primary Goals
+    91→    91→Let an admin upload, version, and publish apps across four platforms in under 5 minutes per app.
+    92→    92→
+    93→    93→Give visitors a Play Store-quality browsing experience on phone and desktop.
+    94→    94→
+    95→    95→Establish trust through checksums, scan status, licensing, and source URLs.
+    96→    96→
+    97→    97→Be installable as a PWA on every major platform.
+    98→    98→
+    99→    99→Achieve Lighthouse ≥ 95 (mobile) on public pages.
+   100→   100→
+   101→   101→Success Metrics (first 6 months)
+   102→   102→Metric  Target
+   103→   103→Apps published  100+
+   104→   104→Monthly downloads       50K
+   105→   105→PWA install rate        ≥ 3% of returning visitors
+   106→   106→Bounce on app detail    ≤ 40%
+   107→   107→Median LCP (mobile)     < 2.0s
+   108→   108→Admin publish time      < 5 min/app
+   109→   109→3. Non-Goals
+   110→   110→Not a paid app store (v1). Donations/Pro membership are optional add-ons.
+   111→   111→
+   112→   112→Not a piracy or warez host. Only apps the operator owns or is licensed to distribute.
+   113→   113→
+   114→   114→Not a developer SDK marketplace in v1.
+   115→   115→
+   116→   116→Not a code signing service.
+   117→   117→
+   118→   118→Not a replacement for GitHub Releases for source distribution.
+   119→   119→
+   120→   120→Not a desktop-native installer framework.
+   121→   121→
+   122→   122→4. Target Users & Personas
+   123→   123→Persona A — Sam, casual visitor (mobile)
+   124→   124→Wants a free PDF tool for Android. Lands from Google. Wants to find it, trust it, download it, in under 60 seconds. Cares about ratings, size, and "is it safe?"
+   125→   125→
+   126→   126→Persona B — Priya, power user (desktop)
+   127→   127→Needs a specific Linux .deb. Cares about architecture (amd64/arm64), distro, dependency notes, checksum, and version history. Will verify SHA-256 before installing.
+   128→   128→
+   129→   129→Persona C — Marco, uploader (future role)
+   130→   130→Has built a Chrome extension. Wants to submit it for review. Needs a submission portal, status updates, and version management.
+   131→   131→
+   132→   132→Persona D — The Admin (primary operator)
+   133→   133→Owns the site. Uploads everything. Needs a fast, reliable dashboard: create app → upload files → set versions → publish. Wants analytics, moderation queues, and audit logs.
+   134→   134→
+   135→   135→Persona E — Moderator
+   136→   136→Handles user reports, review moderation, takedown requests. Needs a queue-first UI.
+   137→   137→
+   138→   138→5. Scope & Platforms
+   139→   139→Supported Platforms (v1)
+   140→   140→Platform        Packages        Notes
+   141→   141→Windows .exe, .msi, .zip (portable), .msix      x86, x64, ARM64
+   142→   142→Linux / Ubuntu  .deb, .AppImage, .snap, .flatpak, .tar.gz       Debian, Ubuntu, Fedora, Arch
+   143→   143→Android .apk, .aab      Own apps only
+   144→   144→Chrome Extension        .crx, .zip (unpacked)   MV2/MV3, permissions metadata
+   145→   145→Future Platforms
+   146→   146→macOS (.dmg, .pkg)
+   147→   147→
+   148→   148→Web Apps / PWAs (manifest URL)
+   149→   149→
+   150→   150→CLI tools (npm, pip, cargo references)
+   151→   151→
+   152→   152→Firefox extensions
+   153→   153→
+   154→   154→6. Information Architecture
+   155→   155→Public Sitemap
+   156→   156→text
+   157→   157→/
+   158→   158→├── /apps                    (browse all)
+   159→   159→├── /platforms
+   160→   160→│   ├── /windows
+   161→   161→│   ├── /linux
+   162→   162→│   ├── /ubuntu
+   163→   163→│   ├── /android
+   164→   164→│   └── /chrome-extensions
+   165→   165→├── /categories
+   166→   166→│   └── /categories/[slug]
+   167→   167→├── /app/[slug]              (app detail)
+   168→   168→├── /developer/[slug]
+   169→   169→├── /collections
+   170→   170→│   └── /collections/[slug]
+   171→   171→├── /search
+   172→   172→├── /login
+   173→   173→├── /register
+   174→   174→├── /forgot-password
+   175→   175→├── /account
+   176→   176→│   ├── /downloads
+   177→   177→│   ├── /wishlist
+   178→   178→│   ├── /reviews
+   179→   179→│   └── /settings
+   180→   180→├── /submit                  (developer submission)
+   181→   181→├── /about
+   182→   182→├── /contact
+   183→   183→├── /privacy
+   184→   184→├── /terms
+   185→   185→├── /dmca
+   186→   186→└── /report
+   187→   187→Admin Sitemap
+   188→   188→text
+   189→   189→/admin
+   190→   190→├── /dashboard
+   191→   191→├── /apps
+   192→   192→│   ├── /new
+   193→   193→│   └── /[id]
+   194→   194→│       ├── /edit
+   195→   195→│       ├── /versions
+   196→   196→│       ├── /media
+   197→   197→│       └── /analytics
+   198→   198→├── /versions
+   199→   199→├── /upload
+   200→   200→├── /categories
+   201→   201→├── /tags
+   202→   202→├── /platforms
+   203→   203→├── /collections
+   204→   204→├── /reviews
+   205→   205→├── /reports
+   206→   206→├── /users
+   207→   207→├── /roles
+   208→   208→├── /analytics
+   209→   209→├── /audit-logs
+   210→   210→└── /settings
+   211→   211→    ├── /general
+   212→   212→    ├── /seo
+   213→   213→    ├── /storage
+   214→   214→    ├── /email
+   215→   215→    ├── /security
+   216→   216→    └── /integrations
+   217→   217→7. Design System
+   218→   218→7.1 Design Principles
+   219→   219→Principle       Description
+   220→   220→Content-first   Icon, name, rating, badge do the work. Chrome stays quiet.
+   221→   221→One primary action      Every card/detail has one loud button: Download.
+   222→   222→Scannable       20 apps glanceable in 3 seconds. Consistent card anatomy.
+   223→   223→Progressive disclosure  Summary first, expandable detail.
+   224→   224→Two shapes, one product Phone and desktop are the same product, different shells.
+   225→   225→Feels native    Installable PWA, safe-area aware, 60fps scroll.
+   226→   226→7.2 Color Tokens
+   227→   227→Light mode
+   228→   228→
+   229→   229→Token   Value   Use
+   230→   230→--bg    #FFFFFF Page background
+   231→   231→--bg-subtle     #F8F9FA Section alt background
+   232→   232→--surface       #FFFFFF Cards
+   233→   233→--surface-hover #F1F3F4 Card hover
+   234→   234→--border        #E8EAED Hairlines
+   235→   235→--text  #1F1F1F Primary text
+   236→   236→--text-2        #5F6368 Secondary
+   237→   237→--text-3        #80868B Tertiary
+   238→   238→--accent        #1A73E8 Primary action
+   239→   239→--accent-hover  #1765CC 
+   240→   240→--accent-fg     #FFFFFF Text on accent
+   241→   241→--success       #0B8F6A Verified / scan clean
+   242→   242→--warning       #F29900 Beta / warning
+   243→   243→--danger        #D93025 Report / flag
+   244→   244→Dark mode
+   245→   245→
+   246→   246→Token   Value
+   247→   247→--bg    #121212
+   248→   248→--bg-subtle     #1C1B1F
+   249→   249→--surface       #1E1E22
+   250→   250→--border        #2E2E33
+   251→   251→--text  #E8EAED
+   252→   252→--text-2        #9AA0A6
+   253→   253→--text-3        #6B7075
+   254→   254→Platform tints (badges only, never page background)
+   255→   255→
+   256→   256→Platform        Hex
+   257→   257→Windows #0078D4
+   258→   258→Linux   #F6A800
+   259→   259→Ubuntu  #E95420
+   260→   260→Android #3DDC84
+   261→   261→Chrome  #4285F4
+   262→   262→Rule: one accent per screen. No stacking of hues.
+   263→   263→
+   264→   264→7.3 Typography
+   265→   265→Font: Inter (fallback system-ui), or Geist.
+   266→   266→
+   267→   267→Role    Mobile  Desktop Weight
+   268→   268→Display / hero  28–32   36–40   600
+   269→   269→H1      24      28      600
+   270→   270→H2 / section header     20      22      600
+   271→   271→H3      16      18      600
+   272→   272→Body    14–15   15      400
+   273→   273→App name (card) 14      14      500
+   274→   274→Meta    12–13   13      400
+   275→   275→Button  14      14      600
+   276→   276→Caption 11–12   12      400
+   277→   277→Line-height: 1.3 headings, 1.5 body. Display letter-spacing: -0.02em.
+   278→   278→
+   279→   279→7.4 Spacing Scale (4px base)
+   280→   280→text
+   281→   281→--s-1:  4px
+   282→   282→--s-2:  8px
+   283→   283→--s-3:  12px
+   284→   284→--s-4:  16px
+   285→   285→--s-5:  20px
+   286→   286→--s-6:  24px
+   287→   287→--s-8:  32px
+   288→   288→--s-10: 40px
+   289→   289→--s-12: 48px
+   290→   290→--s-16: 64px
+   291→   291→--s-20: 80px
+   292→   292→7.5 Radius
+   293→   293→text
+   294→   294→--r-sm:  8px    (buttons secondary, inputs)
+   295→   295→--r-md:  12px   (cards, images)
+   296→   296→--r-lg:  16px   (large cards, hero)
+   297→   297→--r-xl:  28px   (bottom sheet top corners)
+   298→   298→--r-full: 999px (pills, chips, primary buttons)
+   299→   299→Icon squircle: 22% of icon size
+   300→   300→7.6 Elevation
+   301→   301→Minimal. Prefer hairline borders over shadows.
+   302→   302→
+   303→   303→text
+   304→   304→elev-0: none (default)
+   305→   305→elev-1: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06)  (cards on hover)
+   306→   306→elev-2: 0 4px 12px rgba(0,0,0,0.10)  (dropdowns, popovers)
+   307→   307→elev-3: 0 12px 32px rgba(0,0,0,0.16)  (modals, sheets)
+   308→   308→7.7 Motion
+   309→   309→Token   Duration        Use
+   310→   310→--dur-fast      150ms   Hover, focus, tap
+   311→   311→--dur   200ms   Buttons, chips
+   312→   312→--dur-slow      300ms   Sheets, page transitions
+   313→   313→--ease  cubic-bezier(0.2, 0, 0, 1)      Standard
+   314→   314→--ease-out      cubic-bezier(0, 0, 0.2, 1)      Enter
+   315→   315→--ease-in       cubic-bezier(0.4, 0, 1, 1)      Exit
+   316→   316→Signature transitions:
+   317→   317→
+   318→   318→App icon: shared-element from card → detail (View Transitions API)
+   319→   319→
+   320→   320→Bottom sheet: slide up 250ms ease-out
+   321→   321→
+   322→   322→Card hover (desktop): translateY(-2px) + icon scale(1.02)
+   323→   323→
+   324→   324→Download button: Download → progress ring → Installed ✓
+   325→   325→
+   326→   326→Respect prefers-reduced-motion: reduce to opacity-only fades.
+   327→   327→
+   328→   328→7.8 Iconography
+   329→   329→Set: Lucide or Material Symbols — one, not both
+   330→   330→
+   331→   331→Stroke: 1.5–2px
+   332→   332→
+   333→   333→Sizes: 16, 20, 24, 32
+   334→   334→
+   335→   335→Platform logos: official marks from vendor brand kits only
+   336→   336→
+   337→   337→7.9 Illustration
+   338→   338→Empty states: 1-color line illustration, accent-tinted
+   339→   339→
+   340→   340→Error states: same style, danger-tinted
+   341→   341→
+   342→   342→Hero backgrounds: subtle gradient mesh or solid tint, never stock photos of people at laptops
+   343→   343→
+   344→   344→7.10 Brand Identity
+   345→   345→Wordmark: "Free Programs Pro Store" — use "Free Programs Pro" on tight space
+   346→   346→
+   347→   347→Monogram: FP in a squircle for favicon/PWA
+   348→   348→
+   349→   349→Voice: friendly-expert. "Curated", "verified", "checked", "open". Avoid marketing fluff.
+   350→   350→
+   351→   351→8. Layout System
+   352→   352→Breakpoints
+   353→   353→Name    Width   Shell
+   354→   354→Compact < 600   Bottom tab bar, single column
+   355→   355→Medium  600–1023        Bottom bar or nav rail, 2-col grids
+   356→   356→Expanded        1024–1439       Left sidebar, 3–4 col grids
+   357→   357→Large   ≥ 1440  Left sidebar, 5 col grids
+   358→   358→Content max-width: 1440px centered.
+   359→   359→
+   360→   360→Grid
+   361→   361→Mobile: 4-col grid, 16px gutters, 16px margins
+   362→   362→
+   363→   363→Desktop: 12-col grid, 24px gutters, 24–40px margins
+   364→   364→
+   365→   365→Mobile Shell
+   366→   366→text
+   367→   367→Sticky top bar (56px):
+   368→   368→  [avatar]  [search pill]  [bell]
+   369→   369→
+   370→   370→Sticky chips row (48px):
+   371→   371→  All · Windows · Linux · Ubuntu · Android · Extensions
+   372→   372→
+   373→   373→Scrollable content
+   374→   374→
+   375→   375→Fixed bottom nav (64px + safe area):
+   376→   376→  Home · Apps · Search · Library · Me
+   377→   377→Rules:
+   378→   378→
+   379→   379→Bottom nav respects env(safe-area-inset-bottom)
+   380→   380→
+   381→   381→Search pill expands to full-screen search on tap
+   382→   382→
+   383→   383→Carousels: scroll-snap-type: x mandatory, hidden scrollbar, 16px edge padding
+   384→   384→
+   385→   385→Detail pages are route transitions, not modals
+   386→   386→
+   387→   387→Filters open in bottom sheet with sticky "Show N results"
+   388→   388→
+   389→   389→Download button sticky above bottom nav on detail pages
+   390→   390→
+   391→   391→Desktop Shell
+   392→   392→text
+   393→   393→Top app bar (64px):
+   394→   394→  Logo   [search input..........................]   [bell]  [avatar]
+   395→   395→
+   396→   396→Left sidebar (240px, collapsible to 72px):
+   397→   397→  Home / Apps / Games / Library
+   398→   398→  PLATFORMS
+   399→   399→    Windows / Linux / Ubuntu / Android / Extensions
+   400→   400→  CATEGORIES
+   401→   401→    Dev Tools / Security / Utilities / ...
+   402→   402→  [Get Pro]
+   403→   403→
+   404→   404→Content area: responsive grid, max 1440px
+   405→   405→Rules:
+   406→   406→
+   407→   407→Horizontal carousels become grids on desktop
+   408→   408→
+   409→   409→Grid columns: 5 at ≥1440, 4 at 1200, 3 at 1024
+   410→   410→
+   411→   411→Detail pages become two-column: sticky meta rail + scrollable body
+   412→   412→
+   413→   413→/ focuses search, Esc closes overlays, arrow keys move across grids
+   414→   414→
+   415→   415→9. Screen-by-Screen Specifications
+   416→   416→9.1 Home
+   417→   417→Sections, in order:
+   418→   418→
+   419→   419→Hero carousel — up to 5 featured apps, 16:9 on mobile, 21:9 on desktop
+   420→   420→
+   421→   421→Platform chips (sticky)
+   422→   422→
+   423→   423→"Top free apps" — horizontal cards (mobile), grid (desktop)
+   424→   424→
+   425→   425→"New releases" — list rows
+   426→   426→
+   427→   427→"Editor's picks" — curated collection
+   428→   428→
+   429→   429→"Browse by platform" — 2×2 tiles (mobile), 5-up (desktop)
+   430→   430→
+   431→   431→"Top rated" — grid
+   432→   432→
+   433→   433→"Recently updated" — list
+   434→   434→
+   435→   435→Footer
+   436→   436→
+   437→   437→Each section header: title (H2) + "See all →".
+   438→   438→
+   439→   439→9.2 Browse / Category / Platform
+   440→   440→Sticky filter bar: chips (platform, category, license, rating, OS, arch)
+   441→   441→
+   442→   442→Sort: Relevance · Newest · Top rated · Most downloaded · A–Z
+   443→   443→
+   444→   444→Result count "1,204 apps"
+   445→   445→
+   446→   446→Grid of app cards
+   447→   447→
+   448→   448→Infinite scroll with a real paginated fallback URL (?page=2) for SEO
+   449→   449→
+   450→   450→Empty state: illustration + "No apps match. Try clearing filters." + [Clear filters]
+   451→   451→
+   452→   452→9.3 Search
+   453→   453→Mobile: full-screen overlay
+   454→   454→
+   455→   455→Search input autofocused
+   456→   456→
+   457→   457→Recent searches (clearable)
+   458→   458→
+   459→   459→Suggestions as you type (apps, categories, developers)
+   460→   460→
+   461→   461→Results: list rows
+   462→   462→
+   463→   463→Desktop: inline dropdown with grouped results, Enter → /search?q=
+   464→   464→
+   465→   465→9.4 App Detail (Public)
+   466→   466→Mobile order:
+   467→   467→
+   468→   468→Icon (72) + name + developer + platform badges
+   469→   469→
+   470→   470→Stats row: ★ 4.8 · 50K downloads · 12 MB · Everyone
+   471→   471→
+   472→   472→Download button (full-width, sticky at bottom)
+   473→   473→
+   474→   474→Screenshot carousel (snap-scroll, tap → lightbox)
+   475→   475→
+   476→   476→"About this app" — 3-line clamp + "Read more"
+   477→   477→
+   478→   478→"What's new" — latest version + changelog accordion
+   479→   479→
+   480→   480→Trust block: license, source URL, SHA-256, scan status, permissions
+   481→   481→
+   482→   482→Ratings & reviews: histogram + 3 reviews + "See all reviews"
+   483→   483→
+   484→   484→"More from [developer]"
+   485→   485→
+   486→   486→"Similar apps"
+   487→   487→
+   488→   488→Desktop: items 1–3 in sticky left column (320px); 4–10 scroll in right column.
+   489→   489→
+   490→   490→9.5 Version History
+   491→   491→Table: version · date · platform · channel · size · checksum · download
+   492→   492→
+   493→   493→Changelog per version (markdown)
+   494→   494→
+   495→   495→"Stable / Beta / Nightly" filter
+   496→   496→
+   497→   497→9.6 Reviews
+   498→   498→Star histogram (5★ → 1★)
+   499→   499→
+   500→   500→Sort: Most helpful · Newest · Highest · Lowest
+   501→   501→
+   502→   502→Each review: avatar, name, star rating, date, body, "Helpful" count, "Report"
+   503→   503→
+   504→   504→Logged-in users can post one review per app; editable
+   505→   505→
+   506→   506→9.7 Account
+   507→   507→Profile: avatar, name, email, password, 2FA
+   508→   508→
+   509→   509→Downloads: history with re-download links
+   510→   510→
+   511→   511→Wishlist: saved apps
+   512→   512→
+   513→   513→Reviews: my reviews with edit/delete
+   514→   514→
+   515→   515→Settings: theme (system/light/dark), notifications, delete account
+   516→   516→
+   517→   517→9.8 Admin Dashboard
+   518→   518→KPI cards: apps, downloads (7d), users, pending reports
+   519→   519→
+   520→   520→Charts: downloads over time (line), top apps (bar), platform split (donut)
+   521→   521→
+   522→   522→Queues: pending reviews, open reports, draft apps
+   523→   523→
+   524→   524→Recent audit log entries
+   525→   525→
+   526→   526→9.9 Admin App Editor
+   527→   527→Wizard tabs: Details → Media → Platforms & Versions → Files → Trust → Publish
+   528→   528→
+   529→   529→Details: name, slug, tagline, description (rich text), category, tags, developer, license, source URL, homepage
+   530→   530→
+   531→   531→Media: icon (512×512 PNG), feature graphic (1024×500), screenshots (min 2, up to 10)
+   532→   532→
+   533→   533→Platforms & Versions: per-platform version entries with min OS, arch, channel, changelog
+   534→   534→
+   535→   535→Files: drag-and-drop, per-file progress, auto SHA-256, optional VirusTotal scan
+   536→   536→
+   537→   537→Trust: license type, permissions list, safety notes
+   538→   538→
+   539→   539→Publish: draft / scheduled / public toggle, "Preview as public" link
+   540→   540→
+   541→   541→9.10 Admin Review Queue
+   542→   542→Table: app, user, rating, excerpt, date, actions (approve, hide, delete)
+   543→   543→
+   544→   544→Bulk actions
+   545→   545→
+   546→   546→9.11 Admin Reports Queue
+   547→   547→Table: type (app, review, user), reporter, reason, status, date
+   548→   548→
+   549→   549→Detail drawer: full context + resolve/dismiss + notes
+   550→   550→
+   551→   551→10. Component Library
+   552→   552→Core components
+   553→   553→Component       Variants        Notes
+   554→   554→AppCard card, list-row, hero, compact   The atom of the store
+   555→   555→PlatformBadge   windows, linux, ubuntu, android, chrome Pill with logo + label
+   556→   556→Rating  stars, stars+count, histogram   Never stars alone
+   557→   557→DownloadButton  default, downloading, installed, error  Mirrors Play language
+   558→   558→ScreenshotStrip mobile, desktop Snap-scroll, lightbox
+   559→   559→Chip    filter, selectable, removable   Pill
+   560→   560→SectionHeader   with/without See all    H2 + link
+   561→   561→SearchInput     pill, expanded, overlay 
+   562→   562→Tabs    underline, pill 
+   563→   563→BottomSheet     default, full-height    28px top radius
+   564→   564→Modal   sm, md, lg      Focus trap
+   565→   565→Toast   success, error, info    Bottom on mobile
+   566→   566→EmptyState      illustration + text + action    
+   567→   567→Skeleton        card, row, detail       
+   568→   568→Pagination      numbers, infinite-scroll fallback       
+   569→   569→ThemeToggle     icon    system/light/dark
+   570→   570→Prose   markdown renderer       Changelogs, policies
+   571→   571→Admin-only components
+   572→   572→Component       Notes
+   573→   573→DataTable       Sortable, filterable, 36–40px rows
+   574→   574→FileDropzone    Drag-drop + progress + checksum chip
+   575→   575→VersionRow      Inline edit
+   576→   576→StatCard        KPI with trend
+   577→   577→LineChart, BarChart, DonutChart Recharts or visx
+   578→   578→CommandPalette  Cmd+K jump to any entity
+   579→   579→AuditLogRow     Actor, action, entity, time
+   580→   580→RoleSelector    RBAC
+   581→   581→11. Feature Specifications — Public
+   582→   582→11.1 Browse & Filter
+   583→   583→Filters: platform, category, tag, license, rating ≥, file size, OS, architecture, updated within
+   584→   584→
+   585→   585→Filter state in URL query (?platform=windows&sort=rating)
+   586→   586→
+   587→   587→Multi-select on desktop, single-select chips on mobile
+   588→   588→
+   589→   589→11.2 Search
+   590→   590→Backend: Meilisearch/Typesense
+   591→   591→
+   592→   592→Fields indexed: name, tagline, description, developer, tags, platform
+   593→   593→
+   594→   594→Features: typo tolerance, synonyms, boosts (name > tags > description), highlighted snippets
+   595→   595→
+   596→   596→Recent searches stored locally; suggestions from server
+   597→   597→
+   598→   598→11.3 App Detail
+   599→   599→Server-rendered for SEO
+   600→   600→
+   601→   601→Structured data (see §24)
+   602→   602→
+   603→   603→Related apps: same category/tags, same platform, top-rated
+   604→   604→
+   605→   605→"Report this app" link → form
+   606→   606→
+   607→   607→11.4 Download
+   608→   608→Click → POST /api/downloads/[versionId]
+   609→   609→
+   610→   610→Server logs download (user agent, referrer, country, hashed IP)
+   611→   611→
+   612→   612→Redirects to signed URL (expires in 60s, single use)
+   613→   613→
+   614→   614→Shows checksum + size before download on mobile browsers that support it
+   615→   615→
+   616→   616→11.5 Reviews
+   617→   617→Auth required
+   618→   618→
+   619→   619→One review per app per user
+   620→   620→
+   621→   621→1–5 stars + optional body (max 2000 chars)
+   622→   622→
+   623→   623→Rate limit: 5 reviews/day/user
+   624→   624→
+   625→   625→Profanity filter + manual moderation
+   626→   626→
+   627→   627→11.6 Wishlist
+   628→   628→Auth required
+   629→   629→
+   630→   630→Add/remove from card or detail
+   631→   631→
+   632→   632→Visible in /account/wishlist
+   633→   633→
+   634→   634→11.7 Report
+   635→   635→Types: malware, broken download, wrong metadata, copyright, other
+   636→   636→
+   637→   637→Requires description
+   638→   638→
+   639→   639→Rate limited
+   640→   640→
+   641→   641→Feeds admin queue
+   642→   642→
+   643→   643→11.8 Developer Profiles
+   644→   644→Name, avatar, bio, links
+   645→   645→
+   646→   646→List of their apps
+   647→   647→
+   648→   648→Follow (future)
+   649→   649→
+   650→   650→11.9 Collections
+   651→   651→Admin-curated, ordered lists ("Best dev tools 2026")
+   652→   652→
+   653→   653→Public /collections/[slug]
+   654→   654→
+   655→   655→12. Feature Specifications — Admin
+   656→   656→12.1 App CRUD
+   657→   657→Create, edit, duplicate, archive, delete (soft)
+   658→   658→
+   659→   659→Slug auto-generated, editable, unique
+   660→   660→
+   661→   661→Draft / Scheduled / Published states
+   662→   662→
+   663→   663→Feature toggle, pin to home
+   664→   664→
+   665→   665→12.2 Version Management
+   666→   666→Multiple versions per app per platform
+   667→   667→
+   668→   668→Channels: stable, beta, nightly, rc
+   669→   669→
+   670→   670→Fields: version, channel, platform, min OS, arch, size, checksum, changelog, published_at
+   671→   671→
+   672→   672→"Mark latest" per platform
+   673→   673→
+   674→   674→Rollback (set previous as latest)
+   675→   675→
+   676→   676→12.3 File Uploads
+   677→   677→Drag-drop, multi-file
+   678→   678→
+   679→   679→Max size configurable (default 500MB)
+   680→   680→
+   681→   681→Auto checksum (SHA-256)
+   682→   682→
+   683→   683→Optional VirusTotal scan → status chip
+   684→   684→
+   685→   685→Versioned storage keys: apps/{slug}/{version}/{platform}/{filename}
+   686→   686→
+   687→   687→12.4 Media Management
+   688→   688→Icon (required, 512×512 PNG)
+   689→   689→
+   690→   690→Feature graphic (1024×500)
+   691→   691→
+   692→   692→Screenshots (2–10, PNG/JPG/WebP)
+   693→   693→
+   694→   694→Auto-generate thumbnails + AVIF/WebP
+   695→   695→
+   696→   696→12.5 Categories, Tags, Platforms
+   697→   697→Full CRUD, drag-to-reorder
+   698→   698→
+   699→   699→Category: name, slug, icon, description, parent (optional)
+   700→   700→
+   701→   701→Tag: name, slug
+   702→   702→
+   703→   703→Platform: name, slug, color, icon
+   704→   704→
+   705→   705→12.6 Collections
+   706→   706→Curate apps, drag order, publish
+   707→   707→
+   708→   708→12.7 Reviews & Reports
+   709→   709→Queue views, bulk action, notes
+   710→   710→
+   711→   711→Reasons, resolution history
+   712→   712→
+   713→   713→12.8 Users & Roles
+   714→   714→Search, filter, ban/unban
+   715→   715→
+   716→   716→Role assignment
+   717→   717→
+   718→   718→Impersonation (super admin only, audit logged)
+   719→   719→
+   720→   720→12.9 Audit Logs
+   721→   721→Every admin write action logged
+   722→   722→
+   723→   723→Fields: actor, action, entity_type, entity_id, before, after, ip, user_agent, timestamp
+   724→   724→
+   725→   725→Read-only, exportable
+   726→   726→
+   727→   727→12.10 Analytics
+   728→   728→Downloads (day/week/month)
+   729→   729→
+   730→   730→Top apps / platforms / countries
+   731→   731→
+   732→   732→Funnel: view → detail → download
+   733→   733→
+   734→   734→Retention (returning users)
+   735→   735→
+   736→   736→Referrers
+   737→   737→
+   738→   738→12.11 Settings
+   739→   739→General: name, logo, tagline, contact
+   740→   740→
+   741→   741→SEO: default meta, sitemap toggle, OG image
+   742→   742→
+   743→   743→Storage: S3 endpoint, bucket, region, keys
+   744→   744→
+   745→   745→Email: provider, from address, templates
+   746→   746→
+   747→   747→Security: 2FA required for admins, session length, IP allowlist
+   748→   748→
+   749→   749→Integrations: VirusTotal, Stripe, Resend, Sentry
+   750→   750→
+   751→   751→13. Upload & Publishing Flow
+   752→   752→Single-app flow:
+   753→   753→
+   754→   754→Create app → name, slug, tagline, category
+   755→   755→
+   756→   756→Upload media → icon, feature graphic, screenshots
+   757→   757→
+   758→   758→Add platform entry → pick platform
+   759→   759→
+   760→   760→Add version → number, channel, min OS, arch, changelog
+   761→   761→
+   762→   762→Upload binary → progress → SHA-256 computed → optional scan
+   763→   763→
+   764→   764→Set trust metadata → license, source URL, permissions
+   765→   765→
+   766→   766→Preview → open public URL in preview mode
+   767→   767→
+   768→   768→Publish → confirmation lists exactly what goes live
+   769→   769→
+   770→   770→Post-publish → app appears in browse, sitemap updates, search index updated
+   771→   771→
+   772→   772→Bulk upload (v1.1): CSV + ZIP bundle.
+   773→   773→
+   774→   774→Scheduled publish: choose date/time; cron job flips status.
+   775→   775→
+   776→   776→14. Technical Architecture
+   777→   777→Stack
+   778→   778→Layer   Choice  Alternative
+   779→   779→Frontend        Next.js 15 App Router + TypeScript      Remix, SvelteKit
+   780→   780→Styling Tailwind CSS + shadcn/ui        CSS Modules
+   781→   781→State   Server components + TanStack Query for client   Zustand
+   782→   782→Database        PostgreSQL 16   MySQL, Supabase
+   783→   783→ORM     Prisma  Drizzle
+   784→   784→Auth    Auth.js v5      Clerk, Supabase Auth
+   785→   785→Storage Cloudflare R2 (S3-compatible)   AWS S3, Backblaze B2
+   786→   786→CDN     Cloudflare      CloudFront, Fastly
+   787→   787→Search  Meilisearch     Typesense, PG FTS
+   788→   788→Cache/Queue     Redis (Upstash) + BullMQ        QStash
+   789→   789→Email   Resend  Postmark, SES
+   790→   790→Payments        Stripe (optional)       Paddle
+   791→   791→Error monitoring        Sentry  Axiom
+   792→   792→Analytics       Plausible or Umami (self-host)  GA4
+   793→   793→Deployment      Vercel  Fly.io, Railway, Docker VPS
+   794→   794→High-Level Diagram
+   795→   795→text
+   796→   796→Browser / PWA
+   797→   797→    │
+   798→   798→    ▼
+   799→   799→Cloudflare (CDN, WAF, DDoS)
+   800→   800→    │
+   801→   801→    ▼
+   802→   802→Next.js (Vercel / Node)
+   803→   803→ ├─ App Router (RSC + client islands)
+   804→   804→ ├─ API routes / Server Actions
+   805→   805→ ├─ Auth.js sessions
+   806→   806→ └─ Rate limiting (Redis)
+   807→   807→    │
+   808→   808→    ├──▶ PostgreSQL (Prisma)
+   809→   809→    ├──▶ Redis (cache + queue)
+   810→   810→    ├──▶ Meilisearch (index)
+   811→   811→    ├──▶ R2/S3 (files + images)
+   812→   812→    ├──▶ Resend (email)
+   813→   813→    └──▶ VirusTotal / Sentry / Stripe
+   814→   814→Rendering Strategy
+   815→   815→Page    Strategy
+   816→   816→Home, browse, category, platform        ISR (revalidate 60s)
+   817→   817→App detail      ISR + on-demand revalidate on publish
+   818→   818→Search  SSR / client
+   819→   819→Account, admin  Dynamic, no cache
+   820→   820→Static policies SSG
+   821→   821→15. Database Schema
+   822→   822→Tables
+   823→   823→users
+   824→   824→id, email, name, avatar_url, password_hash, role_id, email_verified_at, two_factor_secret, banned_at, created_at, updated_at, deleted_at
+   825→   825→
+   826→   826→roles
+   827→   827→id, name (guest/user/uploader/moderator/admin/super_admin), permissions (jsonb)
+   828→   828→
+   829→   829→apps
+   830→   830→id, slug, name, tagline, description, icon_url, feature_graphic_url, developer_id, category_id, license, source_url, homepage_url, status (draft/scheduled/published/archived), featured (bool), published_at, created_at, updated_at, deleted_at
+   831→   831→
+   832→   832→app_versions
+   833→   833→id, app_id, platform_id, version, channel (stable/beta/nightly/rc), release_notes, file_url, file_size, checksum_sha256, min_os, architecture, permissions (jsonb), scan_status, scan_report_url, published_at, created_at
+   834→   834→
+   835→   835→platforms
+   836→   836→id, slug, name, color, icon_url, sort_order
+   837→   837→
+   838→   838→categories
+   839→   839→id, slug, name, description, icon_url, parent_id, sort_order
+   840→   840→
+   841→   841→tags
+   842→   842→id, slug, name
+   843→   843→
+   844→   844→app_tags
+   845→   845→app_id, tag_id (composite PK)
+   846→   846→
+   847→   847→screenshots
+   848→   848→id, app_id, url, width, height, sort_order
+   849→   849→
+   850→   850→files
+   851→   851→id, app_version_id, storage_key, url, size, mime, checksum_sha256, created_at
+   852→   852→
+   853→   853→downloads
+   854→   854→id, app_id, app_version_id, user_id (nullable), ip_hash, user_agent, referrer, country, created_at
+   855→   855→
+   856→   856→reviews
+   857→   857→id, app_id, user_id, rating (1–5), body, helpful_count, status (visible/hidden/pending), created_at, updated_at
+   858→   858→
+   859→   859→reports
+   860→   860→id, type (app/review/user), target_id, reporter_id, reason, description, status (open/resolved/dismissed), resolver_id, resolution_note, created_at, resolved_at
+   861→   861→
+   862→   862→collections
+   863→   863→id, slug, name, description, cover_url, published (bool), sort_order
+   864→   864→
+   865→   865→collection_apps
+   866→   866→collection_id, app_id, sort_order
+   867→   867→
+   868→   868→audit_logs
+   869→   869→id, actor_id, action, entity_type, entity_id, before (jsonb), after (jsonb), ip, user_agent, created_at
+   870→   870→
+   871→   871→settings
+   872→   872→key, value (jsonb), updated_at
+   873→   873→
+   874→   874→subscriptions (optional)
+   875→   875→id, user_id, plan, status, stripe_customer_id, stripe_subscription_id, current_period_end
+   876→   876→
+   877→   877→notifications
+   878→   878→id, user_id, type, title, body, link, read_at, created_at
+   879→   879→
+   880→   880→Indexes
+   881→   881→apps(slug) unique
+   882→   882→
+   883→   883→apps(status, published_at)
+   884→   884→
+   885→   885→app_versions(app_id, platform_id, channel)
+   886→   886→
+   887→   887→downloads(app_id, created_at)
+   888→   888→
+   889→   889→reviews(app_id, status)
+   890→   890→
+   891→   891→reports(status, created_at)
+   892→   892→
+   893→   893→Full-text index on apps(name, tagline, description)
+   894→   894→
+   895→   895→Soft deletes
+   896→   896→All content tables have deleted_at. Public queries filter deleted_at IS NULL.
+   897→   897→
+   898→   898→16. API Specification
+   899→   899→Public
+   900→   900→Method  Path    Notes
+   901→   901→GET     /api/apps       Paginated, filterable, sortable
+   902→   902→GET     /api/apps/[slug]        Detail
+   903→   903→GET     /api/apps/[slug]/versions       Version list
+   904→   904→GET     /api/apps/[slug]/reviews        Paginated
+   905→   905→POST    /api/apps/[slug]/reviews        Auth
+   906→   906→POST    /api/downloads/[versionId]      Returns signed URL
+   907→   907→GET     /api/categories 
+   908→   908→GET     /api/platforms  
+   909→   909→GET     /api/tags       
+   910→   910→GET     /api/collections/[slug] 
+   911→   911→GET     /api/search?q=  Meilisearch proxy
+   912→   912→POST    /api/reports    Auth optional
+   913→   913→Auth
+   914→   914→Method  Path
+   915→   915→POST    /api/auth/register
+   916→   916→POST    /api/auth/login
+   917→   917→POST    /api/auth/logout
+   918→   918→POST    /api/auth/forgot-password
+   919→   919→POST    /api/auth/reset-password
+   920→   920→Admin (RBAC)
+   921→   921→Method  Path    Role
+   922→   922→POST    /api/admin/apps admin
+   923→   923→PUT     /api/admin/apps/[id]    admin
+   924→   924→DELETE  /api/admin/apps/[id]    admin
+   925→   925→POST    /api/admin/apps/[id]/versions   admin
+   926→   926→POST    /api/admin/upload       admin (signed URL issue)
+   927→   927→POST    /api/admin/scan/[fileId]        admin
+   928→   928→PUT     /api/admin/reviews/[id] moderator
+   929→   929→PUT     /api/admin/reports/[id] moderator
+   930→   930→PUT     /api/admin/users/[id]/role      super_admin
+   931→   931→GET     /api/admin/analytics?range=     admin
+   932→   932→GET     /api/admin/audit-logs   super_admin
+   933→   933→Conventions
+   934→   934→JSON: { data, meta? } on success, { error: { code, message } } on failure
+   935→   935→
+   936→   936→Zod validation on every input
+   937→   937→
+   938→   938→Rate limiting via Redis
+   939→   939→
+   940→   940→Cursor pagination for large lists
+   941→   941→
+   942→   942→17. File Storage & Downloads
+   943→   943→Storage layout
+   944→   944→text
+   945→   945→/apps/{slug}/icon.png
+   946→   946→/apps/{slug}/feature.png
+   947→   947→/apps/{slug}/screenshots/{n}.webp
+   948→   948→/apps/{slug}/{version}/{platform}/{filename}
+   949→   949→/uploads/tmp/{uuid}
+   950→   950→Uploads
+   951→   951→Direct-to-S3 via presigned URLs (client → R2), max 500MB per file
+   952→   952→
+   953→   953→Checksum computed client-side (Web Crypto) and verified server-side
+   954→   954→
+   955→   955→MIME + magic-byte validation
+   956→   956→
+   957→   957→Optional VirusTotal scan (async job)
+   958→   958→
+   959→   959→Thumbnail generation for images (Sharp), stored as WebP + AVIF
+   960→   960→
+   961→   961→Downloads
+   962→   962→API issues a presigned GET URL (60s expiry, single-use)
+   963→   963→
+   964→   964→CDN in front of bucket (Cloudflare) for hot files
+   965→   965→
+   966→   966→Log download event before redirect
+   967→   967→
+   968→   968→Optional "verified download" landing page on mobile
+   969→   969→
+   970→   970→18. Authentication & Authorization
+   971→   971→Auth
+   972→   972→Auth.js v5 with credentials + optional OAuth (Google, GitHub)
+   973→   973→
+   974→   974→Password hashing: Argon2id
+   975→   975→
+   976→   976→Email verification required for reviews/uploads
+   977→   977→
+   978→   978→Optional 2FA (TOTP) — required for admins
+   979→   979→
+   980→   980→Session: JWT in httpOnly, secure, SameSite=Lax
+   981→   981→
+   982→   982→RBAC
+   983→   983→Role    Permissions
+   984→   984→Guest   Browse, search, download
+   985→   985→User    + reviews, wishlist, report
+   986→   986→Uploader        + submit apps (their own)
+   987→   987→Moderator       + review/report queues
+   988→   988→Admin   + full app CRUD, users, categories
+   989→   989→Super Admin     + roles, settings, audit logs, impersonation
+   990→   990→Enforced via middleware + server-side checks on every admin route.
+   991→   991→
+   992→   992→19. Security
+   993→   993→Area    Measure
+   994→   994→Input   Zod validation, parameterized queries (Prisma)
+   995→   995→Output  Sanitize rich text (DOMPurify server-side)
+   996→   996→CSRF    Double-submit token + SameSite cookies
+   997→   997→XSS     CSP with nonces, no dangerouslySetInnerHTML on user content
+   998→   998→Rate limit      Redis sliding window per IP + per user
+   999→   999→Uploads MIME + magic-byte check, size caps, AV scan
+  1000→  1000→Storage Private buckets, signed URLs only
+  1001→  1001→Secrets Env vars, never committed; rotated quarterly
+  1002→  1002→Admin   2FA required, IP allowlist optional, session 8h max
+  1003→  1003→Headers HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+  1004→  1004→Dependencies    Dependabot, npm audit in CI
+  1005→  1005→Backups Nightly DB snapshots, 30-day retention, restore-tested monthly
+  1006→  1006→Monitoring      Sentry, uptime alerts, log retention 90d
+  1007→  1007→20. Trust, Safety & Legal Compliance
+  1008→  1008→Content policy
+  1009→  1009→Only apps the operator owns or is licensed to distribute
+  1010→  1010→
+  1011→  1011→No pirated software, cracks, keygens, or repacks
+  1012→  1012→
+  1013→  1013→No malware, spyware, adware, or PUPs
+  1014→  1014→
+  1015→  1015→Clear license shown (Freeware, Open Source [SPDX], Trial, etc.)
+  1016→  1016→
+  1017→  1017→Trust signals on every app
+  1018→  1018→SHA-256 checksum
+  1019→  1019→
+  1020→  1020→Scan status (clean / pending / flagged) — with provider name
+  1021→  1021→
+  1022→  1022→License type
+  1023→  1023→
+  1024→  1024→Source URL (official homepage/GitHub)
+  1025→  1025→
+  1026→  1026→Last updated date
+  1027→  1027→
+  1028→  1028→Reported issues count (publicly visible)
+  1029→  1029→
+  1030→  1030→Legal pages
+  1031→  1031→Privacy Policy
+  1032→  1032→
+  1033→  1033→Terms of Service
+  1034→  1034→
+  1035→  1035→Cookie Notice + consent banner (EU/UK)
+  1036→  1036→
+  1037→  1037→DMCA / Takedown
+  1038→  1038→
+  1039→  1039→Report Abuse
+  1040→  1040→
+  1041→  1041→Security.txt (/.well-known/security.txt)
+  1042→  1042→
+  1043→  1043→DMCA workflow
+  1044→  1044→Complaint submitted via /dmca form
+  1045→  1045→
+  1046→  1046→Auto-ack email to complainant
+  1047→  1047→
+  1048→  1048→Admin notified; 24–72h SLA
+  1049→  1049→
+  1050→  1050→Takedown or counter-notice
+  1051→  1051→
+  1052→  1052→Audit logged
+  1053→  1053→
+  1054→  1054→GDPR / CCPA
+  1055→  1055→Cookie consent by region
+  1056→  1056→
+  1057→  1057→Data export (JSON) and deletion from account settings
+  1058→  1058→
+  1059→  1059→DPA with processors documented
+  1060→  1060→
+  1061→  1061→21. PWA & Cross-Platform
+  1062→  1062→Manifest
+  1063→  1063→json
+  1064→  1064→{
+  1065→  1065→  "name": "Free Programs Pro Store",
+  1066→  1066→  "short_name": "Free Programs Pro",
+  1067→  1067→  "start_url": "/",
+  1068→  1068→  "display": "standalone",
+  1069→  1069→  "background_color": "#FFFFFF",
+  1070→  1070→  "theme_color": "#1A73E8",
+  1071→  1071→  "icons": [
+  1072→  1072→    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+  1073→  1073→    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+  1074→  1074→    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  1075→  1075→  ],
+  1076→  1076→  "share_target": {
+  1077→  1077→    "action": "/share",
+  1078→  1078→    "method": "GET",
+  1079→  1079→    "params": { "title": "title", "text": "text", "url": "url" }
+  1080→  1080→  }
+  1081→  1081→}
+  1082→  1082→Service worker
+  1083→  1083→Precache app shell + offline page
+  1084→  1084→
+  1085→  1085→Cache-first for static assets, network-first for API
+  1086→  1086→
+  1087→  1087→Cache last-viewed app detail pages
+  1088→  1088→
+  1089→  1089→Background sync for reviews/reports composed offline
+  1090→  1090→
+  1091→  1091→Push notifications for "new version of an app you downloaded"
+  1092→  1092→
+  1093→  1093→Install experience
+  1094→  1094→Custom install banner after 2nd visit (not first)
+  1095→  1095→
+  1096→  1096→display-mode: standalone tweaks: hide install banner, add safe-area padding
+  1097→  1097→
+  1098→  1098→Android TWA wrapper optional for Play Store listing
+  1099→  1099→
+  1100→  1100→Platform-specific notes
+  1101→  1101→iOS: install via Add to Home Screen; support apple-touch-icon, apple-mobile-web-app-capable
+  1102→  1102→
+  1103→  1103→Windows/macOS/Linux: Chrome/Edge install → appears in launcher
+  1104→  1104→
+  1105→  1105→Android: TWA or install prompt
+  1106→  1106→
+  1107→  1107→22. Performance
+  1108→  1108→Metric  Target
+  1109→  1109→LCP (mobile 4G) < 2.0s
+  1110→  1110→CLS     < 0.05
+  1111→  1111→INP     < 200ms
+  1112→  1112→TTFB    < 400ms
+  1113→  1113→Lighthouse mobile       ≥ 95
+  1114→  1114→Bundle (initial JS, gzip)       < 150KB
+  1115→  1115→Images  AVIF/WebP, lazy, responsive srcset, sizes
+  1116→  1116→Techniques:
+  1117→  1117→
+  1118→  1118→RSC + streaming SSR
+  1119→  1119→
+  1120→  1120→Route-level code splitting
+  1121→  1121→
+  1122→  1122→Font subsetting + font-display: swap
+  1123→  1123→
+  1124→  1124→Preconnect to storage/CDN hosts
+  1125→  1125→
+  1126→  1126→Prefetch on hover/viewport for likely next routes
+  1127→  1127→
+  1128→  1128→CDN caching for images and static
+  1129→  1129→
+  1130→  1130→Edge rendering for home/browse
+  1131→  1131→
+  1132→  1132→23. Accessibility
+  1133→  1133→WCAG 2.2 AA minimum
+  1134→  1134→
+  1135→  1135→Contrast ≥ 4.5:1 text, 3:1 UI
+  1136→  1136→
+  1137→  1137→All targets ≥ 44×44px mobile
+  1138→  1138→
+  1139→  1139→Visible focus rings, logical tab order
+  1140→  1140→
+  1141→  1141→Semantic landmarks (header, nav, main, aside, footer)
+  1142→  1142→
+  1143→  1143→Labels on all icon-only buttons
+  1144→  1144→
+  1145→  1145→Alt text required for screenshots in admin
+  1146→  1146→
+  1147→  1147→Respect prefers-reduced-motion, prefers-color-scheme, prefers-contrast
+  1148→  1148→
+  1149→  1149→Screen reader test pass on VoiceOver + NVDA
+  1150→  1150→
+  1151→  1151→RTL-ready via logical CSS properties
+  1152→  1152→
+  1153→  1153→Test at 320px width and 200% zoom
+  1154→  1154→
+  1155→  1155→24. SEO
+  1156→  1156→Server-rendered pages with unique titles, descriptions, canonical URLs
+  1157→  1157→
+  1158→  1158→Sitemap.xml (apps, categories, platforms, collections, static pages)
+  1159→  1159→
+  1160→  1160→robots.txt with sitemap reference
+  1161→  1161→
+  1162→  1162→Structured data:
+  1163→  1163→
+  1164→  1164→SoftwareApplication on app detail
+  1165→  1165→
+  1166→  1166→AggregateRating + Review
+  1167→  1167→
+  1168→  1168→BreadcrumbList
+  1169→  1169→
+  1170→  1170→Organization + WebSite with SearchAction
+  1171→  1171→
+  1172→  1172→Open Graph + Twitter cards; per-app OG image (dynamic via @vercel/og)
+  1173→  1173→
+  1174→  1174→Clean slugs, no query-string-only content
+  1175→  1175→
+  1176→  1176→hreflang if localized
+  1177→  1177→
+  1178→  1178→301 redirects on slug change (audit log stores old slugs)
+  1179→  1179→
+  1180→  1180→25. Analytics & Telemetry
+  1181→  1181→Product analytics
+  1182→  1182→Pageviews, unique visitors, sessions
+  1183→  1183→
+  1184→  1184→Funnel: home → browse → detail → download
+  1185→  1185→
+  1186→  1186→Search queries (with zero-result queries surfaced to admin)
+  1187→  1187→
+  1188→  1188→Referrers, countries, devices
+  1189→  1189→
+  1190→  1190→Privacy
+  1191→  1191→No PII in analytics
+  1192→  1192→
+  1193→  1193→IP hashed before storage
+  1194→  1194→
+  1195→  1195→Cookie consent gates analytics in EU/UK
+  1196→  1196→
+  1197→  1197→Error/performance monitoring
+  1198→  1198→Sentry for exceptions (source maps uploaded)
+  1199→  1199→
+  1200→  1200→Web Vitals reported to /api/vitals
+  1201→  1201→
+  1202→  1202→Uptime checks (1 min interval)
+  1203→  1203→
+  1204→  1204→26. Notifications & Email
+  1205→  1205→Transactional emails
+  1206→  1206→Welcome / verify email
+  1207→  1207→
+  1208→  1208→Password reset
+  1209→  1209→
+  1210→  1210→Review posted (to admin, optional)
+  1211→  1211→
+  1212→  1212→Report received (ack)
+  1213→  1213→
+  1214→  1214→DMCA received (ack)
+  1215→  1215→
+  1216→  1216→New version of subscribed app (opt-in)
+  1217→  1217→
+  1218→  1218→Pro membership receipt (if enabled)
+  1219→  1219→
+  1220→  1220→In-app notifications
+  1221→  1221→Bell in header with unread count
+  1222→  1222→
+  1223→  1223→Categories: new version, review reply, moderation action
+  1224→  1224→
+  1225→  1225→Push (PWA)
+  1226→  1226→Opt-in per app ("Notify me about updates")
+  1227→  1227→
+  1228→  1228→Sent via Web Push (VAPID)
+  1229→  1229→
+  1230→  1230→27. Monetization (Optional)
+  1231→  1231→Stream  Notes
+  1232→  1232→Donations       Stripe / Ko-fi / GitHub Sponsors
+  1233→  1233→Pro membership  No ads, bulk download, API access, priority support
+  1234→  1234→Sponsored placement     Clearly labeled "Sponsored"
+  1235→  1235→Affiliate       For hosted/partner products
+  1236→  1236→Featured slots  Curated, not paid (v1)
+  1237→  1237→Ads (if enabled): never inline between cards; sidebar or below fold only, labeled.
+  1238→  1238→
+  1239→  1239→28. Testing Strategy
+  1240→  1240→Layer   Tool    Coverage
+  1241→  1241→Unit    Vitest  Utils, hooks, validators
+  1242→  1242→Component       Testing Library Card, button, form
+  1243→  1243→Integration     Vitest + MSW    API routes
+  1244→  1244→E2E     Playwright      Critical flows: browse → detail → download; admin upload → publish
+  1245→  1245→Accessibility   axe-core (CI)   All key pages
+  1246→  1246→Visual  Playwright screenshots  Home, detail, admin
+  1247→  1247→Load    k6      Download endpoint under load
+  1248→  1248→Security        npm audit, Snyk, OWASP ZAP baseline     
+  1249→  1249→CI blocks merge on failing tests + a11y violations.
+  1250→  1250→
+  1251→  1251→29. CI/CD & Deployment
+  1252→  1252→Pipeline
+  1253→  1253→Lint (ESLint, Prettier, TypeScript)
+  1254→  1254→
+  1255→  1255→Type check (tsc --noEmit)
+  1256→  1256→
+  1257→  1257→Unit + integration tests
+  1258→  1258→
+  1259→  1259→Build
+  1260→  1260→
+  1261→  1261→Playwright E2E against preview deploy
+  1262→  1262→
+  1263→  1263→Lighthouse CI budget check
+  1264→  1264→
+  1265→  1265→Deploy (preview → production on main)
+  1266→  1266→
+  1267→  1267→Deployment targets
+  1268→  1268→Vercel (recommended for Next.js)
+  1269→  1269→
+  1270→  1270→Fly.io / Railway for a containerized Node
+  1271→  1271→
+  1272→  1272→Docker + VPS (Caddy + Postgres + Redis + Meilisearch)
+  1273→  1273→
+  1274→  1274→Infra requirements
+  1275→  1275→Postgres 16 (managed)
+  1276→  1276→
+  1277→  1277→Redis (managed or self-hosted)
+  1278→  1278→
+  1279→  1279→S3-compatible bucket
+  1280→  1280→
+  1281→  1281→Meilisearch instance
+  1282→  1282→
+  1283→  1283→CDN in front of storage
+  1284→  1284→
+  1285→  1285→Cron runner for scheduled publish + backups
+  1286→  1286→
+  1287→  1287→Backups
+  1288→  1288→DB: nightly snapshot + WAL archiving
+  1289→  1289→
+  1290→  1290→Storage: versioning + lifecycle rules
+  1291→  1291→
+  1292→  1292→Restore drill monthly
+  1293→  1293→
+  1294→  1294→30. Environments & Config
+  1295→  1295→Environments
+  1296→  1296→local, preview, staging, production
+  1297→  1297→
+  1298→  1298→Env vars (.env.example)
+  1299→  1299→text
+  1300→  1300→DATABASE_URL=
+  1301→  1301→REDIS_URL=
+  1302→  1302→AUTH_SECRET=
+  1303→  1303→AUTH_URL=
+  1304→  1304→S3_ENDPOINT=
+  1305→  1305→S3_REGION=
+  1306→  1306→S3_BUCKET=
+  1307→  1307→S3_ACCESS_KEY=
+  1308→  1308→S3_SECRET_KEY=
+  1309→  1309→S3_PUBLIC_URL=
+  1310→  1310→MEILISEARCH_HOST=
+  1311→  1311→MEILISEARCH_KEY=
+  1312→  1312→RESEND_API_KEY=
+  1313→  1313→MAIL_FROM=
+  1314→  1314→VIRUSTOTAL_API_KEY=
+  1315→  1315→STRIPE_SECRET_KEY=
+  1316→  1316→STRIPE_WEBHOOK_SECRET=
+  1317→  1317→SENTRY_DSN=
+  1318→  1318→NEXT_PUBLIC_SITE_URL=
+  1319→  1319→NEXT_PUBLIC_SITE_NAME=
+  1320→  1320→Secrets rotated quarterly. Access limited via role-based cloud IAM.
+  1321→  1321→
+  1322→  1322→31. Roadmap & Phases
+  1323→  1323→Phase 1 — Foundation (Weeks 1–3)
+  1324→  1324→Repo, CI, environments
+  1325→  1325→
+  1326→  1326→Design tokens, layout shell (mobile bottom nav + desktop sidebar)
+  1327→  1327→
+  1328→  1328→Auth, RBAC, DB schema + migrations
+  1329→  1329→
+  1330→  1330→S3 storage integration
+  1331→  1331→
+  1332→  1332→Phase 2 — Admin MVP (Weeks 4–6)
+  1333→  1333→App CRUD
+  1334→  1334→
+  1335→  1335→Version management
+  1336→  1336→
+  1337→  1337→Upload flow with checksum + scan
+  1338→  1338→
+  1339→  1339→Publish/unpublish
+  1340→  1340→
+  1341→  1341→Admin dashboard shell
+  1342→  1342→
+  1343→  1343→Phase 3 — Public Store MVP (Weeks 7–9)
+  1344→  1344→Home, browse, category, platform
+  1345→  1345→
+  1346→  1346→App detail + download flow
+  1347→  1347→
+  1348→  1348→Search (Meilisearch)
+  1349→  1349→
+  1350→  1350→SEO + sitemap
+  1351→  1351→
+  1352→  1352→Reviews + reports
+  1353→  1353→
+  1354→  1354→Phase 4 — Polish (Weeks 10–12)
+  1355→  1355→PWA manifest + service worker
+  1356→  1356→
+  1357→  1357→Notifications, email templates
+  1358→  1358→
+  1359→  1359→Analytics dashboards
+  1360→  1360→
+  1361→  1361→Audit logs
+  1362→  1362→
+  1363→  1363→A11y + performance passes
+  1364→  1364→
+  1365→  1365→Playwright E2E
+  1366→  1366→
+  1367→  1367→Phase 5 — Extensions (Post-launch)
+  1368→  1368→Developer/uploader role + submission portal
+  1369→  1369→
+  1370→  1370→Collections
+  1371→  1371→
+  1372→  1372→Chrome extension metadata form
+  1373→  1373→
+  1374→  1374→macOS platform support
+  1375→  1375→
+  1376→  1376→Pro membership + Stripe
+  1377→  1377→
+  1378→  1378→Bulk upload
+  1379→  1379→
+  1380→  1380→Public API for partners
+  1381→  1381→
+  1382→  1382→32. Appendices
+  1383→  1383→A. Design token CSS (drop-in)
+  1384→  1384→css
+  1385→  1385→:root {
+  1386→  1386→  --bg: #ffffff; --bg-subtle: #f8f9fa; --surface: #ffffff;
+  1387→  1387→  --border: #e8eaed;
+  1388→  1388→  --text: #1f1f1f; --text-2: #5f6368; --text-3: #80868b;
+  1389→  1389→  --accent: #1a73e8; --accent-hover: #1765cc; --accent-fg: #fff;
+  1390→  1390→  --success: #0b8f6a; --warning: #f29900; --danger: #d93025;
+  1391→  1391→  --win: #0078d4; --linux: #f6a800; --ubuntu: #e95420;
+  1392→  1392→  --android: #3ddc84; --chrome: #4285f4;
+  1393→  1393→  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 28px; --r-full: 999px;
+  1394→  1394→  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  1395→  1395→  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px;
+  1396→  1396→  --font: 'Inter', system-ui, sans-serif;
+  1397→  1397→  --dur-fast: 150ms; --dur: 200ms; --dur-slow: 300ms;
+  1398→  1398→  --ease: cubic-bezier(0.2, 0, 0, 1);
+  1399→  1399→}
+  1400→  1400→@media (prefers-color-scheme: dark) {
+  1401→  1401→  :root {
+  1402→  1402→    --bg: #121212; --bg-subtle: #1c1b1f; --surface: #1e1e22;
+  1403→  1403→    --border: #2e2e33;
+  1404→  1404→    --text: #e8eaed; --text-2: #9aa0a6; --text-3: #6b7075;
+  1405→  1405→  }
+  1406→  1406→}
+  1407→  1407→B. Acceptance Criteria
+  1408→  1408→Admin can publish a Windows, Linux, Android, and Chrome extension app with versions, media, and checksums
+  1409→  1409→
+  1410→  1410→Public can browse, filter, search, view, review, report, and download
+  1411→  1411→
+  1412→  1412→Downloads use signed URLs and display checksums
+  1413→  1413→
+  1414→  1414→PWA installs on Android, iOS, Windows, macOS, Linux
+  1415→  1415→
+  1416→  1416→Lighthouse mobile ≥ 95 on home, detail, browse
+  1417→  1417→
+  1418→  1418→All admin write actions audit-logged
+  1419→  1419→
+  1420→  1420→Only authorized software can be published (manual gate)
+  1421→  1421→
+  1422→  1422→Site works at 320px width, in dark mode, and via keyboard only
+  1423→  1423→
+  1424→  1424→C. Glossary
+  1425→  1425→Channel — stable/beta/nightly release track
+  1426→  1426→
+  1427→  1427→Checksum — SHA-256 hash of a binary
+  1428→  1428→
+  1429→  1429→CRX — Chrome extension package
+  1430→  1430→
+  1431→  1431→PWA — Progressive Web App
+  1432→  1432→
+  1433→  1433→RBAC — Role-Based Access Control
+  1434→  1434→
+  1435→  1435→Signed URL — Time-limited URL to a private file
+  1436→  1436→
+  1437→  1437→Slug — URL-friendly identifier
+  1438→  1438→
+  1439→  1439→TWA — Trusted Web Activity (Android wrapper
