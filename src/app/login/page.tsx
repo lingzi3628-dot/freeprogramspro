@@ -10,6 +10,22 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 
 export default function LoginPage() {
+  return (
+    <React.Suspense fallback={<LoginLoading />}>
+      <LoginForm />
+    </React.Suspense>
+  )
+}
+
+function LoginLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
   const params = useSearchParams()
   const [pending, setPending] = React.useState(false)
