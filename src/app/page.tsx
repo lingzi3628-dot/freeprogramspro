@@ -9,6 +9,8 @@ import { SearchScreen } from '@/components/store/search-screen'
 import { AccountScreen } from '@/components/store/account-screen'
 import { AboutScreen } from '@/components/store/about-screen'
 import { SubmitScreen } from '@/components/store/submit-screen'
+import { VerifyTool } from '@/components/store/verify-tool'
+import { ApiDocsScreen } from '@/components/store/api-docs-screen'
 import { AdminDashboard } from '@/components/admin/dashboard'
 import { AdminAppEditor } from '@/components/admin/app-editor'
 import {
@@ -20,7 +22,17 @@ import {
   AdminAnalyticsScreen,
   AdminSettingsScreen,
 } from '@/components/admin/admin-screens'
+import { AdminApiKeys } from '@/components/admin/api-keys-screen'
+import { AdminWebhooks } from '@/components/admin/webhooks-screen'
+import {
+  AdminSigningIdentities,
+  AdminSigningIdentityDetail,
+  AdminSigningPolicy,
+  AdminSigningAudit,
+} from '@/components/admin/signing-screens'
+import { AdminApiUsage } from '@/components/admin/api-usage-screen'
 import { apps, type App } from '@/data/mock'
+import { signingIdentities } from '@/data/v2-mock'
 import { useNav } from '@/lib/store/nav'
 
 export default function Home() {
@@ -66,6 +78,11 @@ function RouteRenderer({
       return <AboutScreen />
     case 'submit':
       return <SubmitScreen />
+    // V2.0 public routes
+    case 'verify':
+      return <VerifyTool />
+    case 'api-docs':
+      return <ApiDocsScreen />
     // Admin routes
     case 'admin-dashboard':
       return <AdminDashboard />
@@ -89,6 +106,25 @@ function RouteRenderer({
       return <AdminAnalyticsScreen />
     case 'admin-settings':
       return <AdminSettingsScreen />
+    // V2.0 admin routes
+    case 'admin-api-keys':
+      return <AdminApiKeys />
+    case 'admin-webhooks':
+      return <AdminWebhooks />
+    case 'admin-signing':
+      return <AdminSigningIdentities />
+    case 'admin-signing-new':
+      return <AdminSigningIdentities />
+    case 'admin-signing-detail': {
+      const identity = signingIdentities.find((i) => i.id === route.id)
+      return <AdminSigningIdentityDetail identity={identity} />
+    }
+    case 'admin-signing-policy':
+      return <AdminSigningPolicy />
+    case 'admin-signing-audit':
+      return <AdminSigningAudit />
+    case 'admin-api-usage':
+      return <AdminApiUsage />
     default:
       return <NotFound onHome={() => navigate({ name: 'home' })} />
   }

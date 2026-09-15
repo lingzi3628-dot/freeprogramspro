@@ -28,6 +28,8 @@ import { ScreenshotStrip } from './screenshot-strip'
 import { SectionHeader, TrustBadge, EmptyState } from './primitives'
 import { formatBytes, formatDownloads, ratingHistogram, timeAgo, platforms, type PlatformSlug } from '@/data/mock'
 import { useNav } from '@/lib/store/nav'
+import { synthesizeSignature, trustLevelBadge, type SignatureResult } from '@/data/v2-mock'
+import { SignatureBadge, SignatureBlock } from '@/components/store/signature-display'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -41,6 +43,7 @@ export function AppDetailScreen({ app, allApps }: { app: App; allApps: App[] }) 
   const [whishlisted, setWhishlisted] = React.useState(false)
   const stable = app.versions.filter((v) => v.channel === 'stable')
   const latest = stable[0] || app.versions[0]
+  const signatureForLatest = synthesizeSignature(latest?.platform || app.platforms[0], latest?.channel || 'stable', app.slug)
   const moreFromDev = allApps.filter((a) => a.developerSlug === app.developerSlug && a.slug !== app.slug).slice(0, 4)
   const similar = allApps.filter((a) => a.category === app.category && a.slug !== app.slug).slice(0, 4)
   const hist = ratingHistogram(app)
@@ -119,6 +122,23 @@ export function AppDetailScreen({ app, allApps }: { app: App; allApps: App[] }) 
                 </AccordionItem>
               ))}
             </Accordion>
+          </section>
+
+          {/* Signature & verification */}
+          <section className="space-y-3">
+            <SectionHeader
+              title="Signature & verification"
+              subtitle="Cryptographic proof of who built this binary and that it hasn't been tampered with."
+            />
+            <div className="rounded-xl border border-border bg-card p-4">
+              <SignatureBlock
+                signature={signatureForLatest}
+                checksumSha256={latest?.checksumSha256 || ''}
+                fileSize={latest?.fileSize || app.sizeBytes}
+                fileName={`${app.slug}-${latest?.version}.zip`}
+                scanStatus={(latest?.scanStatus as any) || 'clean'}
+              />
+            </div>
           </section>
 
           {/* Trust block */}
@@ -242,6 +262,10 @@ export function AppDetailScreen({ app, allApps }: { app: App; allApps: App[] }) 
             fileName={`${app.slug}-${latest?.version}.zip`}
             sizeLabel={formatBytes(latest?.fileSize || app.sizeBytes)}
             className="shrink-0"
+            signature={signatureForLatest}
+            checksum={latest?.checksumSha256}
+            scanStatus={latest?.scanStatus}
+            confirmBeforeDownload
           />
         </div>
       </div>
@@ -250,6 +274,7 @@ export function AppDetailScreen({ app, allApps }: { app: App; allApps: App[] }) 
 }
 
 function MetaCard({ app, latest, variant = 'desktop' }: { app: App; latest: any; variant?: 'desktop' | 'mobile' }) {
+  const signature = synthesizeSignature(latest?.platform || app.platforms[0], latest?.channel || 'stable', app.slug)
   return (
     <div className={cn('rounded-xl border border-border bg-card p-4', variant === 'mobile' && 'flex gap-4 p-4')}>
       {variant === 'desktop' ? (
@@ -269,6 +294,9 @@ function MetaCard({ app, latest, variant = 'desktop' }: { app: App; latest: any;
               <PlatformBadge key={p} platform={p} />
             ))}
           </div>
+          <div className="flex justify-center">
+            <SignatureBadge signature={signature} />
+          </div>
           <div className="w-full">
             <Rating value={app.ratingAvg} count={app.ratingCount} size={14} className="justify-center" />
           </div>
@@ -284,6 +312,9 @@ function MetaCard({ app, latest, variant = 'desktop' }: { app: App; latest: any;
             fileName={`${app.slug}-${latest?.version}.zip`}
             sizeLabel={formatBytes(latest?.fileSize || app.sizeBytes)}
             checksum={latest?.checksumSha256}
+            signature={signature}
+            scanStatus={latest?.scanStatus}
+            confirmBeforeDownload
             className="w-full"
           />
           <div className="flex w-full gap-2">
@@ -321,6 +352,9 @@ function MetaCard({ app, latest, variant = 'desktop' }: { app: App; latest: any;
               {app.platforms.map((p) => (
                 <PlatformBadge key={p} platform={p} />
               ))}
+            </div>
+            <div className="mt-1">
+              <SignatureBadge signature={signature} />
             </div>
             <div className="mt-2">
               <Rating value={app.ratingAvg} count={app.ratingCount} size={13} />

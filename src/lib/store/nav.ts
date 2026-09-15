@@ -28,6 +28,19 @@ export type Route =
   | { name: 'admin-analytics' }
   | { name: 'admin-collections' }
   | { name: 'admin-settings' }
+  // V2.0 routes
+  | { name: 'admin-api-keys' }
+  | { name: 'admin-api-key-new' }
+  | { name: 'admin-webhooks' }
+  | { name: 'admin-signing' }
+  | { name: 'admin-signing-new' }
+  | { name: 'admin-signing-detail'; id: string }
+  | { name: 'admin-signing-policy' }
+  | { name: 'admin-signing-audit' }
+  | { name: 'admin-api-usage' }
+  // Public V2.0 routes
+  | { name: 'verify' }
+  | { name: 'api-docs' }
 
 type NavState = {
   route: Route

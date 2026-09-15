@@ -15,6 +15,8 @@ import {
   X,
   Plus,
   Copy,
+  ShieldCheck,
+  Fingerprint,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,15 +26,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useNav } from '@/lib/store/nav'
-import { platforms, categories, apps, type App } from '@/data/mock'
+import { platforms, categories, apps, type App, type PlatformSlug } from '@/data/mock'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { TrustBadge } from '@/components/store/primitives'
+import { SignatureBadge } from '@/components/store/signature-display'
+import { synthesizeSignature } from '@/data/v2-mock'
 
-type Step = 'details' | 'media' | 'versions' | 'files' | 'trust' | 'publish'
+type Step = 'platform' | 'details' | 'media' | 'versions' | 'files' | 'trust' | 'publish'
 
 const STEPS: { id: Step; label: string; icon: React.ReactNode }[] = [
+  { id: 'platform', label: 'Platform', icon: <Globe className="h-3.5 w-3.5" /> },
   { id: 'details', label: 'Details', icon: <FileText className="h-3.5 w-3.5" /> },
   { id: 'media', label: 'Media', icon: <ImageIcon className="h-3.5 w-3.5" /> },
   { id: 'versions', label: 'Platforms & Versions', icon: <Globe className="h-3.5 w-3.5" /> },
@@ -43,7 +49,8 @@ const STEPS: { id: Step; label: string; icon: React.ReactNode }[] = [
 
 export function AdminAppEditor({ app, mode }: { app?: App; mode: 'new' | 'edit' }) {
   const navigate = useNav((s) => s.navigate)
-  const [step, setStep] = React.useState<Step>('details')
+  const [step, setStep] = React.useState<Step>(mode === 'new' ? 'platform' : 'details')
+  const [selectedPlatforms, setSelectedPlatforms] = React.useState<PlatformSlug[]>(app?.platforms || ['windows'])
   const [mediaFiles, setMediaFiles] = React.useState<{ name: string; size: number; progress: number }[]>([])
   const [binaryFiles, setBinaryFiles] = React.useState<{ name: string; size: number; progress: number; checksum?: string; status: 'pending' | 'clean' | 'flagged' }[]>([])
   const [featured, setFeatured] = React.useState(app?.featured || false)
@@ -139,6 +146,65 @@ export function AdminAppEditor({ app, mode }: { app?: App; mode: 'new' | 'edit' 
 
       {/* Body */}
       <div className="rounded-xl border border-border bg-card p-4 md:p-6">
+        {step === 'platform' && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-semibold">What are you publishing?</h2>
+            <p className="text-xs text-muted-foreground">
+              You can publish the same app to multiple platforms. Each gets its own version + file + signature.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {platforms.map((p) => {
+                const checked = selectedPlatforms.includes(p.slug)
+                return (
+                  <button
+                    key={p.slug}
+                    onClick={() => {
+                      setSelectedPlatforms((arr) =>
+                        checked ? arr.filter((x) => x !== p.slug) : [...arr, p.slug]
+                      )
+                    }}
+                    className={cn(
+                      'flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-all',
+                      checked ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-surface-hover'
+                    )}
+                  >
+                    <span
+                      className="flex h-11 w-11 items-center justify-center rounded-[22%]"
+                      style={{ background: `${p.color}1A`, color: p.color }}
+                    >
+                      <span className="text-lg font-bold">{platformEmoji(p.slug)}</span>
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium">{p.name}</div>
+                      <div className="truncate text-[11px] text-muted-foreground">
+                        {p.packages.join(' · ')}
+                      </div>
+                    </div>
+                    <div className={cn(
+                      'flex h-5 w-5 items-center justify-center rounded border-2',
+                      checked ? 'border-primary bg-primary text-primary-foreground' : 'border-border'
+                    )}>
+                      {checked && <FileCheck className="h-3 w-3" />}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+            <div className="rounded-lg bg-muted/30 p-3 text-xs">
+              <p className="font-medium">Per-platform upload flow</p>
+              <p className="mt-1 text-muted-foreground">
+                Each selected platform gets its own fields, validators, and signature scheme in the next steps:
+              </p>
+              <ul className="mt-1.5 grid gap-1 sm:grid-cols-2">
+                <li><code className="text-[10px]">authenticode</code> · Windows (.exe/.msi/.msix)</li>
+                <li><code className="text-[10px]">gpg</code> · Ubuntu/Debian (.deb/.AppImage)</li>
+                <li><code className="text-[10px]">apk-v2/v3</code> · Android (.apk/.aab)</li>
+                <li><code className="text-[10px]">crx3</code> · Chrome (.crx/.zip)</li>
+              </ul>
+            </div>
+          </div>
+        )}
+
         {step === 'details' && (
           <div className="space-y-4">
             <h2 className="text-sm font-semibold">App details</h2>
@@ -216,20 +282,38 @@ export function AdminAppEditor({ app, mode }: { app?: App; mode: 'new' | 'edit' 
             <h2 className="text-sm font-semibold">Platforms & versions</h2>
             <p className="text-xs text-muted-foreground">
               Add a version entry per platform and channel. The latest stable becomes the default download.
+              Each platform shows its own schema fields below.
             </p>
-            <div className="grid gap-3 md:grid-cols-2">
-              {platforms.map((p) => (
-                <div key={p.slug} className="rounded-lg border border-border p-3">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full" style={{ background: p.color }} />
-                    <span className="text-sm font-medium">{p.name}</span>
-                    <Badge variant="outline" className="ml-auto text-[10px]">{app?.versions.filter((v) => v.platform === p.slug).length || 0} versions</Badge>
+            {selectedPlatforms.length === 0 && (
+              <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                No platforms selected. Go back to the Platform step and pick at least one.
+              </div>
+            )}
+            <div className="space-y-4">
+              {selectedPlatforms.map((slug) => {
+                const p = platforms.find((x) => x.slug === slug)!
+                return (
+                  <div key={slug} className="rounded-lg border-2 border-border p-4">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-[22%] text-base" style={{ background: `${p.color}1A`, color: p.color }}>
+                        {platformEmoji(slug)}
+                      </span>
+                      <div>
+                        <div className="text-sm font-medium">{p.name}</div>
+                        <div className="text-[10px] text-muted-foreground">Accepts: {p.packages.join(', ')}</div>
+                      </div>
+                      <Badge variant="outline" className="ml-auto text-[10px]">
+                        {app?.versions.filter((v) => v.platform === slug).length || 0} versions
+                      </Badge>
+                    </div>
+                    {/* Per-platform schema fields */}
+                    <PlatformSchemaFields slug={slug} />
+                    <Button variant="outline" size="sm" className="mt-3 w-full justify-start text-xs">
+                      <Plus className="mr-1 h-3 w-3" /> Add {p.name} version
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="sm" className="mt-2 w-full justify-start text-xs">
-                    <Plus className="mr-1 h-3 w-3" /> Add version
-                  </Button>
-                </div>
-              ))}
+                )
+              })}
             </div>
             {app && (
               <div className="overflow-hidden rounded-lg border border-border">
@@ -240,19 +324,24 @@ export function AdminAppEditor({ app, mode }: { app?: App; mode: 'new' | 'edit' 
                       <th className="px-3 py-2 font-medium">Channel</th>
                       <th className="px-3 py-2 font-medium">Min OS</th>
                       <th className="px-3 py-2 font-medium">Arch</th>
-                      <th className="px-3 py-2 font-medium">Status</th>
+                      <th className="px-3 py-2 font-medium">Signature</th>
+                      <th className="px-3 py-2 font-medium">Scan</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {app.versions.slice(0, 6).map((v) => (
-                      <tr key={v.id} className="hover:bg-surface-hover">
-                        <td className="px-3 py-2 font-mono">{v.version}</td>
-                        <td className="px-3 py-2">{v.channel}</td>
-                        <td className="px-3 py-2 text-muted-foreground">{v.minOs}</td>
-                        <td className="px-3 py-2 text-muted-foreground">{v.architecture}</td>
-                        <td className="px-3 py-2"><TrustBadge variant={v.scanStatus === 'clean' ? 'clean' : 'pending'} label={v.scanStatus} /></td>
-                      </tr>
-                    ))}
+                    {app.versions.slice(0, 6).map((v) => {
+                      const sig = synthesizeSignature(v.platform, v.channel, app.slug)
+                      return (
+                        <tr key={v.id} className="hover:bg-surface-hover">
+                          <td className="px-3 py-2 font-mono">{v.version}</td>
+                          <td className="px-3 py-2">{v.channel}</td>
+                          <td className="px-3 py-2 text-muted-foreground">{v.minOs}</td>
+                          <td className="px-3 py-2 text-muted-foreground">{v.architecture}</td>
+                          <td className="px-3 py-2"><SignatureBadge signature={sig} /></td>
+                          <td className="px-3 py-2"><TrustBadge variant={v.scanStatus === 'clean' ? 'clean' : 'pending'} label={v.scanStatus} /></td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -262,17 +351,57 @@ export function AdminAppEditor({ app, mode }: { app?: App; mode: 'new' | 'edit' 
 
         {step === 'files' && (
           <div className="space-y-4">
-            <h2 className="text-sm font-semibold">File uploads</h2>
+            <h2 className="text-sm font-semibold">Per-platform file uploads</h2>
             <p className="text-xs text-muted-foreground">
-              Drag-drop binaries here. SHA-256 is computed client-side and verified server-side.
-              Optional VirusTotal scan runs async.
+              Each platform has its own uploader with platform-specific validators.
+              Drop a file → SHA-256 computed client-side → signature verified → VirusTotal scan.
             </p>
-            <Dropzone
-              accept=".exe, .msi, .zip, .deb, .AppImage, .snap, .flatpak, .apk, .crx"
-              multiple
-              onFiles={(files) => files.forEach((f) => fakeUpload('binary', f))}
-            />
+
+            {/* Per-platform uploaders */}
+            <div className="space-y-3">
+              {selectedPlatforms.map((slug) => {
+                const p = platforms.find((x) => x.slug === slug)!
+                return (
+                  <div key={slug} className="rounded-lg border-2 border-border p-4">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-[22%] text-sm" style={{ background: `${p.color}1A`, color: p.color }}>
+                        {platformEmoji(slug)}
+                      </span>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{p.name}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {platformSchema(slug).accepts} · signature scheme: <code className="font-mono">{platformSchema(slug).scheme}</code>
+                        </div>
+                      </div>
+                    </div>
+                    <Dropzone
+                      accept={platformSchema(slug).accepts}
+                      multiple
+                      onFiles={(files) => files.forEach((f) => fakeUpload('binary', f))}
+                    />
+                  </div>
+                )
+              })}
+              {selectedPlatforms.length === 0 && (
+                <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                  No platforms selected.
+                </div>
+              )}
+            </div>
+
             <FileList files={binaryFiles} variant="binary" />
+
+            {binaryFiles.length > 0 && (
+              <div className="rounded-lg border border-[var(--success)]/30 bg-[var(--success)]/5 p-3 text-xs">
+                <div className="flex items-center gap-2 font-medium text-[var(--success)]">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Live validation
+                </div>
+                <p className="mt-1 text-muted-foreground">
+                  Signature and metadata are verified on drop, not on submit. Publish is blocked until verified
+                  or admin override (with required reason; audit logged). Reverify available on any version.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -469,3 +598,251 @@ function FileList({ files, variant }: { files: any[]; variant?: 'binary' }) {
     </ul>
   )
 }
+
+// ============================================================================
+// Per-platform helpers
+// ============================================================================
+
+function platformEmoji(slug: PlatformSlug): string {
+  return slug === 'windows' ? '🪟'
+    : slug === 'linux' ? '🐧'
+    : slug === 'ubuntu' ? '🐧'
+    : slug === 'android' ? '🤖'
+    : '🧩'
+}
+
+function platformSchema(slug: PlatformSlug): {
+  accepts: string
+  scheme: string
+} {
+  switch (slug) {
+    case 'windows':
+      return { accepts: '.exe, .msi, .msix, .zip', scheme: 'authenticode' }
+    case 'linux':
+    case 'ubuntu':
+      return { accepts: '.deb, .AppImage, .snap, .flatpak, .tar.gz', scheme: 'gpg' }
+    case 'android':
+      return { accepts: '.apk, .aab', scheme: 'apk-v2/v3' }
+    case 'chrome':
+      return { accepts: '.crx, .zip', scheme: 'crx3' }
+  }
+}
+
+function PlatformSchemaFields({ slug }: { slug: PlatformSlug }) {
+  const common = (
+    <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <Field label="Version (semver)">
+        <Input placeholder="3.2.1" className="font-mono text-xs" />
+      </Field>
+      <Field label="Channel">
+        <Select defaultValue="stable">
+          <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="stable">Stable</SelectItem>
+            <SelectItem value="beta">Beta</SelectItem>
+            <SelectItem value="rc">Release Candidate</SelectItem>
+            <SelectItem value="nightly">Nightly</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
+    </div>
+  )
+
+  if (slug === 'windows') {
+    return (
+      <>
+        {common}
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <Field label="Installer type">
+            <Select defaultValue="msi">
+              <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="exe">.exe (installer)</SelectItem>
+                <SelectItem value="msi">.msi (Windows Installer)</SelectItem>
+                <SelectItem value="msix">.msix (AppX)</SelectItem>
+                <SelectItem value="portable-zip">.zip (portable)</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Architecture">
+            <div className="flex flex-wrap gap-2 pt-1">
+              {['x86', 'x64', 'ARM64'].map((a) => (
+                <label key={a} className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs">
+                  <Checkbox /> {a}
+                </label>
+              ))}
+            </div>
+          </Field>
+          <Field label="Min Windows">
+            <Select defaultValue="win10-21h2">
+              <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="win10-1809">Win10 1809</SelectItem>
+                <SelectItem value="win10-21h2">Win10 21H2</SelectItem>
+                <SelectItem value="win11">Win11 22H2+</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Silent install args">
+            <Input placeholder="/S /norestart" className="font-mono text-xs" />
+          </Field>
+          <Field label="Install size (MB)">
+            <Input type="number" placeholder="42" className="text-xs" />
+          </Field>
+          <Field label="Requires admin (UAC)">
+            <div className="flex items-center gap-2 pt-2">
+              <Switch /> <span className="text-xs text-muted-foreground">Show UAC note to users</span>
+            </div>
+          </Field>
+        </div>
+        <div className="mt-3 flex items-center gap-2 rounded-md bg-[var(--success)]/5 border border-[var(--success)]/30 p-2 text-xs">
+          <ShieldCheck className="h-3.5 w-3.5 text-[var(--success)]" />
+          Authenticode verification: requires RFC 3161 timestamp, chain to trusted root, signer CN match.
+        </div>
+      </>
+    )
+  }
+
+  if (slug === 'linux' || slug === 'ubuntu') {
+    return (
+      <>
+        {common}
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <Field label="Package type">
+            <Select defaultValue="deb">
+              <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="deb">.deb</SelectItem>
+                <SelectItem value="appimage">.AppImage</SelectItem>
+                <SelectItem value="snap">.snap</SelectItem>
+                <SelectItem value="flatpak">.flatpak</SelectItem>
+                <SelectItem value="tarball">.tar.gz</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Distro(s)">
+            <div className="flex flex-wrap gap-2 pt-1">
+              {['Ubuntu 22.04', 'Ubuntu 24.04', 'Debian 12', 'Fedora 40', 'Arch'].map((d) => (
+                <label key={d} className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs">
+                  <Checkbox /> {d}
+                </label>
+              ))}
+            </div>
+          </Field>
+          <Field label="Architecture">
+            <div className="flex flex-wrap gap-2 pt-1">
+              {['amd64', 'arm64', 'armhf'].map((a) => (
+                <label key={a} className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs">
+                  <Checkbox /> {a}
+                </label>
+              ))}
+            </div>
+          </Field>
+          <Field label="Package name">
+            <Input placeholder="notepad-pro" className="font-mono text-xs" />
+          </Field>
+          <Field label="Dependencies" className="md:col-span-2">
+            <Input placeholder="libgtk-3-0, libnotify4" className="font-mono text-xs" />
+          </Field>
+          <Field label="Install command" className="md:col-span-2">
+            <Input placeholder="sudo dpkg -i notepad-pro_3.2.1_amd64.deb" className="font-mono text-xs" />
+          </Field>
+          <Field label="GPG public key (.asc)">
+            <div className="rounded-md border border-dashed border-border p-2 text-center text-[10px] text-muted-foreground">
+              Drop .asc file or click
+            </div>
+          </Field>
+          <Field label="Repository URL (optional)">
+            <Input placeholder="https://repo.fppstore.io/apt" className="font-mono text-xs" />
+          </Field>
+        </div>
+      </>
+    )
+  }
+
+  if (slug === 'android') {
+    return (
+      <>
+        {common}
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <Field label="Version code (int)">
+            <Input type="number" placeholder="30201" className="font-mono text-xs" />
+          </Field>
+          <Field label="Package name">
+            <Input placeholder="com.freeprogramspro.notepad" className="font-mono text-xs" />
+          </Field>
+          <Field label="Min SDK">
+            <Input type="number" placeholder="24 (Android 7)" className="text-xs" />
+          </Field>
+          <Field label="Target SDK">
+            <Input type="number" placeholder="34 (Android 14)" className="text-xs" />
+          </Field>
+          <Field label="ABIs">
+            <div className="flex flex-wrap gap-2 pt-1">
+              {['arm64-v8a', 'armeabi-v7a', 'x86_64'].map((a) => (
+                <label key={a} className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs">
+                  <Checkbox /> {a}
+                </label>
+              ))}
+            </div>
+          </Field>
+          <Field label="Track">
+            <Select defaultValue="production">
+              <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="production">Production</SelectItem>
+                <SelectItem value="beta">Beta</SelectItem>
+                <SelectItem value="alpha">Alpha</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Signing fingerprint (SHA-256)">
+            <Input placeholder="a1b2c3d4e5f6..." className="font-mono text-xs" />
+          </Field>
+          <Field label="Requires Google Play Services">
+            <div className="flex items-center gap-2 pt-2">
+              <Switch /> <span className="text-xs text-muted-foreground">Maps / FCM / SafetyNet etc.</span>
+            </div>
+          </Field>
+          <Field label="Permissions (auto-extracted; editable)" className="md:col-span-2">
+            <Textarea rows={3} placeholder="INTERNET, READ_EXTERNAL_STORAGE, ..." className="font-mono text-[10px]" />
+          </Field>
+        </div>
+      </>
+    )
+  }
+
+  // chrome
+  return (
+    <>
+      {common}
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <Field label="Manifest version">
+          <Select defaultValue="mv3">
+            <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mv2">MV2 (deprecated)</SelectItem>
+              <SelectItem value="mv3">MV3</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Extension ID (derived)">
+          <Input placeholder="auto-derived from public key" className="font-mono text-xs" />
+        </Field>
+        <Field label="Public key (base64)">
+          <Textarea rows={2} placeholder="from manifest key field" className="font-mono text-[10px]" />
+        </Field>
+        <Field label="Homepage URL">
+          <Input placeholder="https://your-app.example" className="text-xs" />
+        </Field>
+        <Field label="Permissions" className="md:col-span-2">
+          <Textarea rows={2} placeholder="storage, activeTab, scripting" className="font-mono text-[10px]" />
+        </Field>
+        <Field label="Host permissions" className="md:col-span-2">
+          <Textarea rows={2} placeholder="https://*.example.com/*" className="font-mono text-[10px]" />
+        </Field>
+      </div>
+    </>
+  )
+}
+

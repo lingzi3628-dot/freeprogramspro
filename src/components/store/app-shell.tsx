@@ -13,6 +13,12 @@ import {
   Sparkles,
   Shield,
   FileText,
+  Key,
+  Webhook,
+  ShieldCheck,
+  BarChart3,
+  BookOpen,
+  CheckCircle2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useNav, type Route } from '@/lib/store/nav'
@@ -217,6 +223,8 @@ function DesktopSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
       {!collapsed && <span className="mt-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Resources</span>}
       {navItem('About', <FileText className="h-4 w-4" />, route.name === 'about', () => navigate({ name: 'about' }), 'about')}
+      {navItem('Verify a file', <ShieldCheck className="h-4 w-4" />, route.name === 'verify', () => navigate({ name: 'verify' }), 'verify')}
+      {navItem('Public API docs', <BookOpen className="h-4 w-4" />, route.name === 'api-docs', () => navigate({ name: 'api-docs' }), 'api-docs')}
 
       <div className="mt-auto space-y-1 pt-3">
         <button
@@ -308,11 +316,15 @@ function SiteFooter() {
               The cleanest, most trustworthy place to discover and download free software across desktop,
               mobile, and browser. Verified files. Transparent checksums. No piracy.
             </p>
-            <Badge variant="secondary" className="text-[10px]">v1.0 · 100+ apps · 4 platforms</Badge>
+            <Badge variant="secondary" className="text-[10px]">v2.0 · API + Code signing + Per-platform upload</Badge>
           </div>
           <FooterCol title="Store" links={['Browse all', 'New releases', "Editor's picks", 'Collections']} onLink={(i) => i === 0 && navigate({ name: 'browse' })} />
           <FooterCol title="Platforms" links={platforms.map((p) => p.name)} onLink={(i) => navigate({ name: 'browse', platform: platforms[i].slug })} />
-          <FooterCol title="Resources" links={['About', 'Submit app', 'Privacy', 'Terms', 'DMCA']} onLink={(i) => i === 0 && navigate({ name: 'about' })} />
+          <FooterCol title="Resources" links={['About', 'Submit app', 'Verify a file', 'Public API docs', 'Privacy', 'Terms', 'DMCA']} onLink={(i) => {
+            if (i === 0) navigate({ name: 'about' })
+            else if (i === 2) navigate({ name: 'verify' })
+            else if (i === 3) navigate({ name: 'api-docs' })
+          }} />
           <FooterCol title="Internal" links={['Admin panel', 'Audit log', 'API docs', 'Status']} onLink={(i) => i === 0 && setMode('admin')} />
         </div>
         <div className="mt-8 flex flex-col items-start justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground md:flex-row md:items-center">
@@ -362,9 +374,14 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     { label: 'Reviews queue', route: { name: 'admin-reviews' }, icon: <Bell className="h-4 w-4" /> },
     { label: 'Reports', route: { name: 'admin-reports' }, icon: <Shield className="h-4 w-4" /> },
     { label: 'Users & roles', route: { name: 'admin-users' }, icon: <User className="h-4 w-4" /> },
-    { label: 'Analytics', route: { name: 'admin-analytics' }, icon: <LayoutGrid className="h-4 w-4" /> },
+    { label: 'Analytics', route: { name: 'admin-analytics' }, icon: <BarChart3 className="h-4 w-4" /> },
     { label: 'Audit logs', route: { name: 'admin-audit' }, icon: <FileText className="h-4 w-4" /> },
     { label: 'Settings', route: { name: 'admin-settings' }, icon: <FileText className="h-4 w-4" /> },
+    // V2.0 sections
+    { label: 'API keys', route: { name: 'admin-api-keys' }, icon: <Key className="h-4 w-4" /> },
+    { label: 'Webhooks', route: { name: 'admin-webhooks' }, icon: <Webhook className="h-4 w-4" /> },
+    { label: 'Signing identities', route: { name: 'admin-signing' }, icon: <ShieldCheck className="h-4 w-4" /> },
+    { label: 'API usage', route: { name: 'admin-api-usage' }, icon: <BarChart3 className="h-4 w-4" /> },
   ]
 
   const active = (r: Route) => r.name === route.name
