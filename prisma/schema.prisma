@@ -1,13 +1,17 @@
 // Free Programs Pro Store — full Prisma schema
 // Based on v1.0 §15 (Database Schema) + v2.0 §45.8 additions
-// Note: SQLite doesn't have native jsonb/arrays; we use String (JSON-encoded) for those.
+//
+// Datasource: PostgreSQL (Neon, Supabase, Vercel Postgres, or self-hosted)
+// JSON-encoded fields use String for cross-DB compatibility (works on both
+// SQLite for local-only dev and Postgres for production; the seed/clear-data
+// scripts use JSON.stringify()/JSON.parse() to read/write).
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
