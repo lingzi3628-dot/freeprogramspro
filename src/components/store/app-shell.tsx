@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { usePathname } from 'next/navigation'
 import {
   Search,
   Bell,
@@ -50,8 +51,15 @@ function FPMonogram({ className }: { className?: string }) {
   )
 }
 
+// Secret admin path — change this to a different value if you want to move the admin panel.
+export const ADMIN_SECRET_PATH = '/adminkenyaorgfpps'
+
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const mode = useNav((s) => s.mode)
+  const pathname = usePathname()
+  const storeMode = useNav((s) => s.mode)
+  // If we're rendering on the secret admin route, force admin mode regardless of store state
+  const isAdminRoute = pathname === ADMIN_SECRET_PATH || pathname?.startsWith(ADMIN_SECRET_PATH + '/')
+  const mode = isAdminRoute ? 'admin' : storeMode
   return mode === 'admin' ? <AdminShell>{children}</AdminShell> : <PublicShell>{children}</PublicShell>
 }
 
@@ -166,7 +174,6 @@ function PlatformChipsBar() {
 function DesktopSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const navigate = useNav((s) => s.navigate)
   const route = useNav((s) => s.route)
-  const setMode = useNav((s) => s.setMode)
 
   const isHome = route.name === 'home'
   const isBrowse = route.name === 'browse' || route.name === 'app'
@@ -227,14 +234,7 @@ function DesktopSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
       {navItem('Public API docs', <BookOpen className="h-4 w-4" />, route.name === 'api-docs', () => navigate({ name: 'api-docs' }), 'api-docs')}
 
       <div className="mt-auto space-y-1 pt-3">
-        <button
-          onClick={() => setMode('admin')}
-          className="flex w-full items-center gap-3 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-          title={collapsed ? 'Admin' : undefined}
-        >
-          <Shield className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>Admin panel</span>}
-        </button>
+        {/* Admin panel is intentionally hidden — accessible only via /adminkenyaorgfpps */}
       </div>
     </aside>
   )
@@ -325,7 +325,7 @@ function SiteFooter() {
             else if (i === 2) navigate({ name: 'verify' })
             else if (i === 3) navigate({ name: 'api-docs' })
           }} />
-          <FooterCol title="Internal" links={['Admin panel', 'Audit log', 'API docs', 'Status']} onLink={(i) => i === 0 && setMode('admin')} />
+          <FooterCol title="Internal" links={['Status']} onLink={() => {}} />
         </div>
         <div className="mt-8 flex flex-col items-start justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground md:flex-row md:items-center">
           <p>© 2026 Free Programs Pro. Open source where applicable.</p>
@@ -365,7 +365,6 @@ function FooterCol({ title, links, onLink }: { title: string; links: string[]; o
 function AdminShell({ children }: { children: React.ReactNode }) {
   const navigate = useNav((s) => s.navigate)
   const route = useNav((s) => s.route)
-  const setMode = useNav((s) => s.setMode)
 
   const nav: { label: string; route: Route; icon: React.ReactNode }[] = [
     { label: 'Dashboard', route: { name: 'admin-dashboard' }, icon: <LayoutGrid className="h-4 w-4" /> },
@@ -400,9 +399,9 @@ function AdminShell({ children }: { children: React.ReactNode }) {
         </form>
         <div className="ml-auto flex items-center gap-1">
           <ThemeToggle />
-          <Button variant="outline" size="sm" className="rounded-full" onClick={() => setMode('public')}>
+          <a href="/" className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-background px-4 text-sm font-medium hover:bg-surface-hover">
             <Home className="mr-1.5 h-4 w-4" /> Exit to store
-          </Button>
+          </a>
           <Avatar className="h-8 w-8">
             <AvatarFallback style={{ background: 'linear-gradient(135deg,#1a73e8,#7c3aed)' }} className="text-white">
               AD

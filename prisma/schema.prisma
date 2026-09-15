@@ -1,8 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Free Programs Pro Store — full Prisma schema
+// Based on v1.0 §15 (Database Schema) + v2.0 §45.8 additions
+// Note: SQLite doesn't have native jsonb/arrays; we use String (JSON-encoded) for those.
 
 generator client {
   provider = "prisma-client-js"
@@ -13,20 +11,395 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ===========================================================================
+// USERS, ROLES, AUTH
+// ===========================================================================
+
 model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String?
+  avatarUrl        String?
+  passwordHash     String?
+  roleId           String?
+  emailVerifiedAt DateTime?
+  twoFactorSecret  String?
+  bannedAt         DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  role             Role?              @relation(fields: [roleId], references: [id])
+  reviews          Review[]
+  downloads        Download[]
+  reports          Report[]           @relation("ReporterReports")
+  resolvedReports  Report[]           @relation("ResolverReports")
+  auditLogs        AuditLog[]
+  apiKeys          ApiKey[]
+  webhooks         Webhook[]
+  subscriptions    Subscription[]
+  notifications    Notification[]
+
+  @@index([roleId])
+}
+
+model Role {
+  id          String  @id @default(cuid())
+  name        String  @unique // guest / user / uploader / moderator / admin / super_admin
+  permissions String  // JSON-encoded array of permission strings
+  users       User[]
+}
+
+// ===========================================================================
+// APPS, VERSIONS, PLATFORMS, CATEGORIES, TAGS
+// ===========================================================================
+
+model App {
+  id                String    @id @default(cuid())
+  slug              String    @unique
+  name              String
+  tagline           String
+  description       String
+  iconUrl           String?
+  iconGradient     String    // JSON: [from, to]
+  iconText          String
+  featureGraphicUrl String?
+  developerId       String?
+  developerName     String
+  developerSlug     String
+  categoryId        String?
+  license           String
+  sourceUrl         String?
+  homepageUrl       String?
+  status            String    @default("draft") // draft / scheduled / published / archived
+  featured          Boolean   @default(false)
+  publishedAt      DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  category          Category?    @relation(fields: [categoryId], references: [id])
+  versions          AppVersion[]
+  screenshots       Screenshot[]
+  tags              AppTag[]
+  reviews           Review[]
+  downloads         Download[]
+  collectionApps    CollectionApp[]
+
+  @@index([status, publishedAt])
+}
+
+model AppVersion {
+  id                String    @id @default(cuid())
+  appId             String
+  platformId        String
+  version           String
+  channel           String    @default("stable") // stable / beta / nightly / rc
+  releaseNotes      String
+  fileUrl           String
+  fileSize          Int
+  checksumSha256   String
+  minOs             String
+  architecture      String
+  permissions       String?   // JSON array
+  scanStatus        String    @default("pending") // clean / pending / flagged
+  scanReportUrl     String?
+  scanProvider      String    @default("VirusTotal")
+  publishedAt      DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+
+  // v2.0 additions — code signing
+  signature         String?   // JSON: SignatureResult
+  signatureStatus  String?   // verified / self / unsigned / revoked / tampered
+  signatureVerifiedAt DateTime?
+  platformMetadata String?   // JSON: per-platform metadata
+
+  app               App        @relation(fields: [appId], references: [id], onDelete: Cascade)
+  platform          Platform   @relation(fields: [platformId], references: [id])
+  files             File[]
+  downloads         Download[]
+
+  @@index([appId, platformId, channel])
+}
+
+model Platform {
+  id         String  @id @default(cuid())
+  slug       String  @unique
+  name       String  @unique
+  color      String
+  icon       String
+  packages   String  // JSON array of file extensions
+  sortOrder  Int     @default(0)
+  versions   AppVersion[]
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  iconUrl     String?
+  parentId    String?
+  sortOrder   Int     @default(0)
+  apps        App[]
+  parent      Category?  @relation("CategoryParent", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryParent")
+}
+
+model Tag {
+  id    String   @id @default(cuid())
+  slug  String   @unique
+  name  String
+  apps  AppTag[]
+}
+
+model AppTag {
+  appId String
+  tagId String
+  app   App @relation(fields: [appId], references: [id], onDelete: Cascade)
+  tag   Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([appId, tagId])
+  @@index([tagId])
+}
+
+model Screenshot {
+  id        String  @id @default(cuid())
+  appId     String
+  url       String
+  width     Int
+  height    Int
+  sortOrder Int     @default(0)
+  app       App     @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@index([appId])
+}
+
+model File {
+  id              String  @id @default(cuid())
+  appVersionId    String
+  storageKey      String
+  url             String
+  size            Int
+  mime            String
+  checksumSha256 String
+  createdAt       DateTime @default(now())
+  appVersion      AppVersion @relation(fields: [appVersionId], references: [id], onDelete: Cascade)
+
+  @@index([appVersionId])
+}
+
+// ===========================================================================
+// DOWNLOADS, REVIEWS, REPORTS
+// ===========================================================================
+
+model Download {
+  id            String   @id @default(cuid())
+  appId         String
+  appVersionId  String?
+  userId        String?
+  ipHash        String?
+  userAgent     String?
+  referrer      String?
+  country       String?
+  createdAt     DateTime @default(now())
+  app           App      @relation(fields: [appId], references: [id])
+  appVersion    AppVersion? @relation(fields: [appVersionId], references: [id])
+  user          User?    @relation(fields: [userId], references: [id])
+
+  @@index([appId, createdAt])
+  @@index([userId])
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  appId        String
+  userId       String
+  rating       Int
+  body         String
+  helpfulCount Int      @default(0)
+  status       String   @default("visible") // visible / hidden / pending
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  app          App      @relation(fields: [appId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@index([appId, status])
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  type            String   // app / review / user
+  targetId        String
+  reporterId      String?
+  reason          String
+  description     String
+  status          String   @default("open") // open / resolved / dismissed
+  resolverId      String?
+  resolutionNote  String?
+  createdAt       DateTime @default(now())
+  resolvedAt      DateTime?
+  reporter        User?    @relation("ReporterReports", fields: [reporterId], references: [id])
+  resolver        User?    @relation("ResolverReports", fields: [resolverId], references: [id])
+
+  @@index([status, createdAt])
+}
+
+// ===========================================================================
+// COLLECTIONS, AUDIT, SETTINGS, NOTIFICATIONS, SUBSCRIPTIONS
+// ===========================================================================
+
+model Collection {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  coverUrl    String?
+  published   Boolean @default(false)
+  sortOrder   Int     @default(0)
+  apps        CollectionApp[]
+}
+
+model CollectionApp {
+  collectionId String
+  appId        String
+  sortOrder    Int     @default(0)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  app          App        @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, appId])
+  @@index([collectionId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorId     String?
+  action      String
+  entityType  String
+  entityId    String
+  before      String?  // JSON
+  after       String?  // JSON
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  actor       User?    @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model Setting {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
+  key       String   @unique
+  value     String   // JSON
   updatedAt DateTime @updatedAt
 }
 
-model Post {
+model Notification {
   id        String   @id @default(cuid())
+  userId    String
+  type      String
   title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  body      String?
+  link      String?
+  readAt    DateTime?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}
+
+model Subscription {
+  id                  String   @id @default(cuid())
+  userId              String
+  plan                String
+  status              String
+  stripeCustomerId    String?
+  stripeSubscriptionId String?
+  currentPeriodEnd    DateTime?
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ===========================================================================
+// V2.0 — PUBLIC API, WEBHOOKS, CODE SIGNING
+// ===========================================================================
+
+model ApiKey {
+  id                String   @id @default(cuid())
+  ownerId           String?
+  name              String
+  type              String   // live / test / publish / read
+  keyHash           String   @unique // SHA-256 of plaintext
+  keyLast4          String
+  keyPrefix         String
+  scopes            String   // JSON array of scope strings
+  ipAllowlist       String?  // JSON array of CIDRs
+  referrerAllowlist String?  // JSON array of glob patterns
+  tier              String   @default("free") // free / developer / partner / enterprise
+  expiresAt         DateTime?
+  rotatedFromId     String?
+  graceUntil        DateTime?
+  status            String   @default("active") // active / grace / expired / revoked
+  revokedReason     String?
+  notes             String?
+  lastUsedAt        DateTime?
+  createdAt         DateTime @default(now())
+  owner             User?    @relation(fields: [ownerId], references: [id])
+
+  @@index([status])
+}
+
+model Webhook {
+  id              String   @id @default(cuid())
+  ownerId         String?
+  name            String
+  url             String
+  secretHash      String
+  secretLast4     String
+  events          String   // JSON array of event types
+  active          Boolean  @default(true)
+  failureCount    Int      @default(0)
+  lastDeliveryAt  DateTime?
+  lastStatus      Int?
+  createdAt       DateTime @default(now())
+  owner           User?    @relation(fields: [ownerId], references: [id])
+  deliveries      WebhookDelivery[]
+}
+
+model WebhookDelivery {
+  id              String   @id @default(cuid())
+  webhookId       String
+  eventType       String
+  payload         String   // JSON
+  statusCode      Int
+  responseBody    String?
+  attempt         Int
+  durationMs      Int
+  deliveredAt     DateTime @default(now())
+  nextRetryAt     DateTime?
+  deadLetter      Boolean  @default(false)
+  webhook         Webhook  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId, deliveredAt])
+}
+
+model SigningIdentity {
+  id              String   @id @default(cuid())
+  name            String
+  platform        String   // windows / linux / ubuntu / android / chrome / cross
+  scheme          String   // authenticode / gpg / apk-v2 / apk-v3 / crx3
+  publicKeyPem    String
+  thumbprintSha256 String  @unique
+  chain           String?  // JSON array
+  status          String   @default("active") // active / grace / revoked
+  revokedAt       DateTime?
+  revokedReason   String?
+  replacementId   String?
+  notBefore       DateTime
+  notAfter        DateTime
+  owner           String?
+  createdBy       String
+  createdAt       DateTime @default(now())
+
+  @@index([platform, status])
 }

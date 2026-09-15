@@ -32,16 +32,27 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Free Programs Pro" }],
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     title: "Free Programs Pro Store",
     description: "Curated, verified, free software across desktop, mobile, and browser.",
     siteName: "Free Programs Pro Store",
     type: "website",
+    images: [{ url: "/icon-512.png", width: 512, height: 512 }],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Free Programs Pro Store",
     description: "Curated, verified, free software across desktop, mobile, and browser.",
+    images: ["/icon-512.png"],
   },
 };
 
