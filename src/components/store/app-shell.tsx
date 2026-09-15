@@ -26,6 +26,7 @@ import { useNav, type Route } from '@/lib/store/nav'
 import { platforms } from '@/data/mock'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { AdminUserBadge } from '@/components/auth/admin-user-badge'
+import { PublicUserBadge } from '@/components/auth/public-user-badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -132,17 +133,7 @@ function TopBar() {
           <Sparkles className="mr-1.5 h-4 w-4" />
           Submit app
         </Button>
-        <button
-          className="flex items-center gap-2 rounded-full p-0.5 pr-2 transition-colors hover:bg-muted"
-          onClick={() => navigate({ name: 'account' })}
-        >
-          <Avatar className="h-8 w-8">
-            <AvatarFallback style={{ background: 'linear-gradient(135deg,#1a73e8,#7c3aed)' }} className="text-white">
-              SP
-            </AvatarFallback>
-          </Avatar>
-          <span className="hidden text-xs font-medium md:inline lg:inline">Sam P.</span>
-        </button>
+        <PublicUserBadge />
       </div>
     </header>
   )
