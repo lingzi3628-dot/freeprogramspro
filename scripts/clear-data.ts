@@ -78,17 +78,13 @@ async function main() {
     },
   })
 
-  console.log('Creating admin user (admin@fppstore.io / admin1234)...')
-  const passwordHash = await bcrypt.hash('admin1234', 12)
-  const adminUser = await db.user.create({
-    data: {
-      email: 'admin@fppstore.io',
-      name: 'Site Admin',
-      roleId: superAdminRole.id,
-      passwordHash,
-      emailVerifiedAt: new Date(),
-    },
-  })
+  console.log('Skipping pre-seeded admin user — first signup will become the bootstrap admin.')
+  console.log('  → Visit /signup and register; the first account gets super_admin role.')
+  // No admin user is pre-seeded. The first person to sign up at /signup
+  // automatically gets the super_admin role (see src/app/actions/auth.ts → signupAction).
+  // This is more secure than shipping a known admin@fppstore.io/admin1234
+  // credential on a public Vercel deploy.
+  const adminUserId = 'system-bootstrap' // placeholder; audit log will use null actorId
 
   console.log('Creating site settings...')
   await db.setting.create({
@@ -135,7 +131,7 @@ async function main() {
   console.log('Creating one audit log entry to mark the reset...')
   await db.auditLog.create({
     data: {
-      actorId: adminUser.id,
+      actorId: null, // no admin user exists yet — first signup will claim it
       action: 'db_reset',
       entityType: 'system',
       entityId: 'database',
@@ -162,13 +158,14 @@ async function main() {
     apiKeys: await db.apiKey.count(),
     webhooks: await db.webhook.count(),
   }
-  console.log('\n✅ Database cleared. Reference data preserved + admin user created.')
+  console.log('\n✅ Database cleared. Reference data seeded. No admin user — first signup becomes the admin.')
   console.table(counts)
-  console.log('\n📋 Admin login:')
-  console.log('   URL:      /adminkenyaorgfpps')
-  console.log('   Email:    admin@fppstore.io')
-  console.log('   Password: admin1234')
-  console.log('\n⚠️  CHANGE THIS PASSWORD after first login (Account → Settings).')
+  console.log('\n📋 Next steps:')
+  console.log('   1. Visit /signup and register your first account')
+  console.log('      → It will automatically get the super_admin role')
+  console.log('   2. After signup you\'ll be auto-logged-in and redirected to /')
+  console.log('   3. Visit /adminkenyaorgfpps for the admin panel')
+  console.log('\nℹ️  No pre-seeded credentials. The first person to sign up bootstraps the admin.')
 }
 
 main()

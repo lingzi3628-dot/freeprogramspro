@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 
-export type SignupState = { ok: true; userId: string } | { ok: false; error: string }
+export type SignupState = { ok: true; userId: string; isFirstUser: boolean } | { ok: false; error: string }
 
 export async function signupAction(formData: FormData): Promise<SignupState> {
   const email = String(formData.get('email') || '').trim().toLowerCase()
@@ -32,10 +32,16 @@ export async function signupAction(formData: FormData): Promise<SignupState> {
     return { ok: false, error: 'An account with this email already exists. Try logging in.' }
   }
 
-  // Get default user role
-  const userRole = await db.role.findUnique({ where: { name: 'user' } })
-  if (!userRole) {
-    return { ok: false, error: 'Server misconfiguration: missing default role.' }
+  // Bootstrap admin: if no users exist yet, the first signup becomes the
+  // super_admin. This lets the user self-provision the admin panel without
+  // needing pre-seeded credentials (which is insecure on a public Vercel
+  // deploy). All subsequent signups get the regular 'user' role.
+  const userCount = await db.user.count()
+  const isFirstUser = userCount === 0
+  const roleName = isFirstUser ? 'super_admin' : 'user'
+  const role = await db.role.findUnique({ where: { name: roleName } })
+  if (!role) {
+    return { ok: false, error: `Server misconfiguration: missing "${roleName}" role. Run bun run db:push and bun run db:clear to set up the database.` }
   }
 
   const passwordHash = await bcrypt.hash(password, 12)
@@ -44,13 +50,13 @@ export async function signupAction(formData: FormData): Promise<SignupState> {
       email,
       name,
       passwordHash,
-      roleId: userRole.id,
-      // emailVerifiedAt is null — in v3.1 we'll wire Resend to verify it
+      roleId: role.id,
+      emailVerifiedAt: isFirstUser ? new Date() : null, // auto-verify the bootstrap admin
     },
   })
 
   revalidatePath('/')
-  return { ok: true, userId: user.id }
+  return { ok: true, userId: user.id, isFirstUser }
 }
 
 export type PublishAppState = { ok: true; appId: string; slug: string } | { ok: false; error: string }

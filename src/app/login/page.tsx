@@ -91,7 +91,7 @@ function LoginForm() {
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input id="email" name="email" type="email" required autoComplete="email"
-                placeholder="you@example.com" className="pl-9" defaultValue="admin@fppstore.io" />
+                placeholder="you@example.com" className="pl-9" />
             </div>
           </div>
 
@@ -100,7 +100,7 @@ function LoginForm() {
             <div className="relative">
               <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input id="password" name="password" type="password" required
-                autoComplete="current-password" className="pl-9" defaultValue="admin1234" />
+                autoComplete="current-password" className="pl-9" />
             </div>
           </div>
 
@@ -115,9 +115,8 @@ function LoginForm() {
           <a href="/signup" className="font-medium text-primary hover:underline">Sign up</a>
         </p>
 
-        <div className="rounded-lg border border-[var(--warning)]/30 bg-[var(--warning)]/5 p-3 text-[11px] text-muted-foreground">
-          <strong className="text-[var(--warning)]">Demo credentials:</strong> admin@fppstore.io / admin1234
-          <br />(change after first login)
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-[11px] text-muted-foreground">
+          <strong className="text-primary">First time here?</strong> The first person to sign up becomes the bootstrap admin with full access to the admin panel at <code className="rounded bg-muted px-1 py-0.5 font-mono">/adminkenyaorgfpps</code>.
         </div>
       </div>
     </div>

@@ -16,6 +16,15 @@ export default function SignupPage() {
   const router = useRouter()
   const [pending, setPending] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [isFirstUser, setIsFirstUser] = React.useState<boolean | null>(null)
+
+  // Check if this is the first signup (becomes admin)
+  React.useEffect(() => {
+    fetch('/api/setup-status')
+      .then(r => r.json())
+      .then(d => setIsFirstUser(d.data?.isFirstUser ?? false))
+      .catch(() => setIsFirstUser(false))
+  }, [])
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -34,7 +43,10 @@ export default function SignupPage() {
     // Auto-login after signup
     const email = String(formData.get('email'))
     const password = String(formData.get('password'))
-    toast.success('Account created!', { description: 'Logging you in…' })
+    toast.success(
+      result.isFirstUser ? 'Bootstrap admin created!' : 'Account created!',
+      { description: result.isFirstUser ? 'You have super_admin privileges. Logging you in…' : 'Logging you in…' }
+    )
 
     const signInResult = await signIn('credentials', { email, password, redirect: false })
     if (signInResult?.error) {
@@ -59,6 +71,11 @@ export default function SignupPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             Free, takes 30 seconds. Use any email + password.
           </p>
+          {isFirstUser && (
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--warning)]/40 bg-[var(--warning)]/10 px-3 py-1 text-xs font-medium text-[var(--warning)]">
+              ⭐ First signup becomes the bootstrap admin (super_admin)
+            </div>
+          )}
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3 rounded-xl border border-border bg-card p-6 shadow-sm">
