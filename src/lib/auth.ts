@@ -6,31 +6,31 @@ import { PrismaClient } from '@prisma/client'
 // Single Prisma instance for auth (avoids clashing with the global db)
 const prisma = new PrismaClient()
 
-// NEXTAUTH_URL: auto-detect from VERCEL_URL if not set
-// (Vercel sets VERCEL_URL automatically on every deployment). Don't throw if
-// missing — NextAuth will fall back to request headers at runtime.
-const NEXTAUTH_URL = process.env.NEXTAUTH_URL
-  || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
-  || (process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : undefined)
+// NEXTAUTH_URL: auto-detect from VERCEL_URL if NEXTAUTH_URL isn't set.
+// Wrapped in try/catch in case the user sets a malformed NEXTAUTH_URL
+// (e.g., "freeprogramspro.vercel.app" without "https://"). Without this,
+// `new URL(malformedString)` throws at module load → /api/auth/* 500s.
+let NEXTAUTH_URL: string | undefined
+try {
+  NEXTAUTH_URL = process.env.NEXTAUTH_URL
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
+    || (process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : undefined)
+  // Validate the URL is parseable
+  if (NEXTAUTH_URL) new URL(NEXTAUTH_URL)
+} catch (e) {
+  console.error('[auth] Invalid NEXTAUTH_URL:', process.env.NEXTAUTH_URL, e)
+  // Fall back to VERCEL_URL or skip
+  NEXTAUTH_URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined
+}
 
-// IMPORTANT: Don't validate NEXTAUTH_SECRET at module load time. The build
-// process (next build) imports this module to collect page data for
-// /api/auth/[...nextauth], and env vars aren't set during the build. Throwing
-// here would break the build.
-//
-// NextAuth reads NEXTAUTH_SECRET from process.env at runtime — if it's missing
-// at runtime, NextAuth throws "There is a problem with the server configuration"
-// which the AuthSessionProvider error boundary catches, and the storefront
-// still renders (just login/signup won't work).
-//
-// If you see runtime auth errors, check Vercel → Project → Settings →
-// Environment Variables for NEXTAUTH_SECRET (generate one with
-// `openssl rand -base64 32`).
+// NEXTAUTH_SECRET: read from process.env at REQUEST time, not module load.
+// We do NOT pass `secret` to authOptions explicitly — NextAuth v4 reads
+// process.env.NEXTAUTH_SECRET automatically. This way the build doesn't
+// fail if the secret isn't set yet (Vercel builds without env vars).
 
 export const authOptions: NextAuthOptions = {
-  // Let NextAuth read NEXTAUTH_SECRET from process.env at runtime.
-  // Don't pass `secret: process.env.NEXTAUTH_SECRET` here — that would
-  // cause the value to be `undefined` at build time and break the build.
+  // Don't pass `secret` — let NextAuth read process.env.NEXTAUTH_SECRET at runtime.
+  // Don't pass `url` if it's undefined — NextAuth falls back to request Host header.
   ...(NEXTAUTH_URL ? { url: new URL(NEXTAUTH_URL) } : {}),
   session: { strategy: 'jwt', maxAge: 8 * 60 * 60 }, // 8h, matches the spec
   pages: {
