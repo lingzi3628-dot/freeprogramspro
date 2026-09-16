@@ -5,29 +5,17 @@ import { SessionProvider } from 'next-auth/react'
 
 // AuthSessionProvider wraps the app so any component can call useSession().
 //
-// IMPORTANT: We deliberately SKIP rendering SessionProvider during SSR and
-// the first client render. This avoids 500 errors when:
-//   - NEXTAUTH_SECRET is not set on Vercel yet (NextAuth throws at runtime)
-//   - The /api/auth/session endpoint is unreachable
-//   - DATABASE_URL is missing (Prisma can't connect)
+// Note: NextAuth v4's SessionProvider does NOT fetch /api/auth/session during
+// SSR — it only fetches client-side via useEffect after mount. So this wrapper
+// is safe to render during SSR. The useSession() hook returns
+//   { data: null, status: 'loading' }
+// during SSR and the first client paint, then resolves to the actual session
+// state once the client-side fetch completes.
 //
-// Error boundaries (React.Component + getDerivedStateFromError) do NOT catch
-// errors during SSR — they only catch client-side render errors. So the only
-// safe way to make the app resilient to NextAuth config issues is to defer
-// the SessionProvider until after mount on the client.
-//
-// Cost: useSession() returns { status: 'loading' } for one frame on first
-// paint, then resolves. The public-user-badge / admin-user-badge components
-// already handle the 'loading' state gracefully.
+// If you see runtime 500 errors from /api/auth/session, the cause is almost
+// always a missing NEXTAUTH_SECRET env var on Vercel — set it in
+// Vercel → Project → Settings → Environment Variables
+// (generate one with `openssl rand -base64 32`).
 export function AuthSessionProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => setMounted(true), [])
-
-  if (!mounted) {
-    // SSR + first client render: render children without SessionProvider.
-    // Anonymous browsing works; login state will hydrate after mount.
-    return <>{children}</>
-  }
-
   return <SessionProvider>{children}</SessionProvider>
 }
